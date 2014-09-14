@@ -1,0 +1,12 @@
+# Site settings
+title: Linux Musings
+email: dsteele@gmail.com
+description: "Things to remember/rant abount."
+baseurl: ""
+url: "http://davesteele.github.io/"
+twitter_username: jekyllrb
+github_username:  davesteele
+
+# Build settings
+markdown: kramdown
+permalink: pretty
