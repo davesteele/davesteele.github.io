@@ -6,6 +6,9 @@ baseurl: ""
 url: "http://davesteele.github.io/"
 twitter_username: dsteele
 github_username:  davesteele
+gplus_name: David Steele
+gplus_account: 100462058146704694561
+
 
 # Build settings
 markdown: kramdown
