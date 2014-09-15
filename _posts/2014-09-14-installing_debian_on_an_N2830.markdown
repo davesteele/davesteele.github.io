@@ -16,7 +16,7 @@ These are Debian installation notes for:
 
 I don't normally do laptops. I lean more towards the camp of having a computer available wherever you need one - especially now that those possible locations include your pocket, I don't run across many situations that scream out for a laptop.
 
-Twice now I have run into special occasions that forced exceptions to my rule. Both times I  bought the cheapest laptop I could find, swapped out the drive for an SSD Linux install, and unloaded the machine after the conference. The first time was in 2011. I recall the installation on the Toshiba went smoothly. I expected last months repeat on a Dell Celeron N2830 to go as well.
+Twice now I have run into special occasions that forced exceptions to my rule. Both times I  bought the cheapest laptop I could find, swapped out the drive for an SSD Linux install, and unloaded the machine after the conference. The first time was in 2011. I recall the installation on the Toshiba Celeron 925 went smoothly. I expected last months repeat on a Dell Celeron N2830 to go as well.
 
 Well, it didn't. I list the particular issues here, with my work-arounds, in case it might help someone else.
 
