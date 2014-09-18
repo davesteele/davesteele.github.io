@@ -1,7 +1,7 @@
 # Site settings
-title: Linux Musings
+title: Dave Steele's Blog
 email: dsteele@gmail.com
-description: "Things to remember/rant abount."
+description: "Linux Musings. Things to remember/rant abount."
 baseurl: ""
 url: "http://davesteele.github.io/"
 twitter_username: dsteele
