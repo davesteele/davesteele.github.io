@@ -4,6 +4,7 @@ email: dsteele@gmail.com
 description: "Linux Musings. Things to remember/rant abount."
 baseurl: ""
 url: "http://davesteele.github.io/"
+comments: true
 twitter_username: dsteele
 github_username:  davesteele
 gplus_name: David Steele
