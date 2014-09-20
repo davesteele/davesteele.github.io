@@ -279,7 +279,7 @@ It appears that they are largely unused for key validation purposes. The Debian 
 I have both 0x10 and 0x13 key signatures in my key structure.
 
 
-### <a name=""/>"Endorsing Signature" Subpackets
+### <a name="SigSubpacket"/>"Endorsing Signature" Subpackets
 
 Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used ([RFC4880-5.2][]). That means such information is validated by the master key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in [RFC4880-5.2.3.1][]
 
