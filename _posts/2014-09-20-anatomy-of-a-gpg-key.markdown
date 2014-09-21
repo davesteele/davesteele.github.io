@@ -324,7 +324,7 @@ If you look in my key structure dump, you'll see that my master key's key flag i
 
 There is not much to work with on this flag, under the normal gpg mode. I don't believe that it is editable in gpg, and the values are created automatically on key creation. Also, there is no option on subkeys to create a key which can both sign and encrypt.
 
-It is possible to set these flags on creation, if you use the gpg "\-\-expert" option along with "\-\-edit-key". Additional key algorithms are shown on the edit "addkey" command which permit toggling some key flags.
+It is possible to set these flags on creation, if you use the gpg "\-\-expert" option along with "\-\-gen-key". Additional key algorithms are shown on the edit "addkey" command which permit toggling some key flags.
 
 #### <a name="PrefSymAlgos"/>Preferred Symmetric Algorithms
 
