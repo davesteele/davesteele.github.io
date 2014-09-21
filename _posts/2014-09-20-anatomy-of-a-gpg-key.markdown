@@ -309,17 +309,16 @@ The flag data is reflected in the output of gpg when you invoke \-\-edit-key:
     [ultimate] (2)  David Steele <daves@users.sourceforge.net>
     
 The 'usage' characters map to the key flags as follows:
-<br>
-<table border="1">
-<tr><th>Flag</th><th>gpg character</th><th>Description</th></tr>
-<tr><td>0x01</td><td>"C"</td><td>Key Certification</td></tr>
-<tr><td>0x02</td><td>"S"</td><td>Sign Data</td></tr>
-<tr><td>0x04</td><td>"E"</td><td>Encrypt Communications</td></tr>
-<tr><td>0x08</td><td>"E"</td><td>Encrypt Storage</td></tr>
-<tr><td>0x10</td><td></td><td>Split key</td></tr>
-<tr><td>0x20</td><td>"A"</td><td>Authentication</td></tr>
-<tr><td>0x80</td><td></td><td>Held by more than one person</td></tr>
-</table>
+
+Flag | gpg character | Description
+:--- | :-----------: | :----------
+0x01 | "C"           | Key Certification
+0x02 | "S"           | Sign Data
+0x04 | "E"           | Encrypt Communications
+0x08 | "E"           | Encrypt Storage
+0x10 |               | Split key
+0x20 | "A"           | Authentication
+0x80 |               | Held by more than one person
 
 If you look in my key structure dump, you'll see that my master key's key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.
 
