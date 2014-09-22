@@ -377,7 +377,7 @@ The key server preferences subpacket is also a bit light ([RFC4880-5.2.3.17][])
 
 Following the self signature are the externally generated key signatures. You get these when you import a copy of your key that has been signed remotely and exported by a person who is certifying your key structure/user id. Note that I show two signatures from the same user/key, ('F7EBEE8EB7982329'), certifying my two user id's independently.
 
-## <a name="EncryptSubkey"/>Encryption 
+## <a name="EncryptSubkey"/>Encryption Subkey
 
 You can see that this was created at the same time as the master key. As mentioned previously, this is created automatically with \-\-gen-key.
 
