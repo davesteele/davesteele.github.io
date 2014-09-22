@@ -61,7 +61,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 > \# [Self Signature](#SelfSig)  
 > :signature packet: algo 1, keyid 8A3171EF366150CE  
 > &nbsp;&nbsp;&nbsp;&nbsp;version 4, created 1281838967, md5len 0, [sigclass 0x13](#SigClass)  
-> &nbsp;&nbsp;&nbsp;&nbsp;digest algo 8, begin of digest f9 34  
+> &nbsp;&nbsp;&nbsp;&nbsp;[digest algo 8](#DigestAlgo), begin of digest f9 34  
 > &nbsp;&nbsp;&nbsp;&nbsp;[hashed subpkt](#SigSubpacket) 2 len 4 (sig created 2010-08-15)  
 > &nbsp;&nbsp;&nbsp;&nbsp;hashed subpkt 27 len 1 ([key flags](#KeyFlags): 03)  
 > &nbsp;&nbsp;&nbsp;&nbsp;hashed subpkt 11 len 4 ([pref-sym-algos](#PrefSymAlgos): 9 8 7 3)  
@@ -89,6 +89,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 
 > \# User ID #2  
 > :user ID packet: "David Steele <dsteele@gmail.com\>"  
+
 > :signature packet: algo 1, keyid 8A3171EF366150CE  
 > &nbsp;&nbsp;&nbsp;&nbsp;version 4, created 1322364912, md5len 0, sigclass 0x13  
 > &nbsp;&nbsp;&nbsp;&nbsp;digest algo 2, begin of digest e6 05  
@@ -268,7 +269,7 @@ Self signatures are generated automatically by gpg, as keys are generated as par
 
 Again, the key signature type, or 'sigclass', identifies the signature as a key signature. It also claims to provide a level of assurance of that certification, from "does not make any particular assertion" to "substantial verification of the claim of identity ([RFC4880-5.2][]).
 
-It appears that they are largely unused for key validation purposes. The Debian key signing guidlines recommends using '[casual][]', which I believe maps to 0x12. However, the RFC states:
+It appears that the levels are largely ignored for key validation purposes. The Debian key signing guidlines recommends using '[casual][]', which I believe maps to 0x12. However, the RFC states:
 
 [casual]: https://www.debian.org/events/keysigning
 
@@ -278,6 +279,21 @@ It appears that they are largely unused for key validation purposes. The Debian 
 
 I have both 0x10 and 0x13 key signatures in my key structure.
 
+### <a name="DigestAlgo"/>Digest Algorithm
+
+A signature is actually a cryptographic operation over a hash of the entity being signed. The list of digest
+algorithms ('hash' and 'digest' are interchangeable) are in [RFC4880-9.4][].
+
+[RFC4880-9.4]: http://tools.ietf.org/html/rfc4880#section-9.4
+
+Note that MD5 (digest algo 1) is [broken][]. SHA-1 (digest algo 2) is the standard, but is showing signs of age. You can set the signature
+preferences using the [personal-digest-preferences][] and [cert-digest-algo][] parameters in ~/.gnupg/gpg.conf.
+[Debian recommends][] that you set this to SHA256.
+
+[broken]: https://www.gnupg.org/faq/weak-digest-algos.html#sec-3
+[Debian recommends]: http://keyring.debian.org/creating-key.html
+[personal-digest-preferences]: https://www.gnupg.org/documentation/manuals/gnupg/OpenPGP-Options.html#index-personal_002ddigest_002dpreferences-280
+[cert-digest-algo]: https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-cert_002ddigest_002dalgo-324
 
 ### <a name="SigSubpacket"/>"Endorsing Signature" Subpackets
 
@@ -330,7 +346,12 @@ It is possible to set these flags on creation, if you use the gpg "\-\-expert" o
 
 First, be aware that when you use public key algorithms, you are actually managing a symmetric encryption key, which is used to do the actual work of encrypting your message. The why of that is out of scope here.
 
-The defined list of algorithms is at [RFC4880-9.2][]. You will probably not need to work with this list. I note with curiosity that TripleDES, the only required algorithm, is not on my list.
+This parameter is listing the algorithms a sender should use to send you encrypted material. This default list to use (as well as the list for hash and compression/zip algorithms) can be set using the [default-preference-list][] parameter on the command line or ~/.gnupg/gpg.conf.
+
+[default-preference-list]: https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-default_002dpreference_002dlist-360
+
+
+The defined list of algorithms is at [RFC4880-9.2][]. You will probably not need to work with this list.
 
 [RFC4880-9.2]: http://tools.ietf.org/html/rfc4880#section-9.2
 
