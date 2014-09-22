@@ -1,6 +1,5 @@
 ---
 layout: null
-title: "My Key"
 ---
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v1.4.12 (GNU/Linux)
