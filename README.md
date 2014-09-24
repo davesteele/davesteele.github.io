@@ -1,4 +1,4 @@
 davesteele.github.io
 ====================
 
-Github [User page](http://davesteele.github.io/) for Dave Steele.
+Github [User page](https://davesteele.github.io/) for Dave Steele.
