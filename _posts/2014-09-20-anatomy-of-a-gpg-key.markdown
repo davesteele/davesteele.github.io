@@ -18,7 +18,9 @@ Here are some takeaways I would have loved to have had going into this:
 
 
 ## Some Terms
-It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the web of trust. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
+It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the [web of trust][]. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
+
+[web of trust]: https://www.gnupg.org/gph/en/manual/x334.html#AEN384
 
 * Master key vs. subkey - A PGP key may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The Master key is the top level key.
 * Public key - This post is working with the published version of the key structure. Therefore, only public keys are described (the ones that encrypt and create signatures). Your local version of your key also includes the associated private keys (for decryption and signature verification), to define the key pair.
