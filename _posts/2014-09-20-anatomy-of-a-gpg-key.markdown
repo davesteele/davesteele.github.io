@@ -22,11 +22,11 @@ It's best that you have an understanding of data encryption and data signing usi
 
 [web of trust]: https://www.gnupg.org/gph/en/manual/x334.html#AEN384
 
-* Master key vs. subkey - A PGP key may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The Master key is the top level key.
+* Primary key vs. subkey - A PGP key may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The Primary key is the top level key.
 * Public key - This post is working with the published version of the key structure. Therefore, only public keys are described (the ones that encrypt and create signatures). Your local version of your key also includes the associated private keys (for decryption and signature verification), to define the key pair.
 * Key structure - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word 'key'. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP structure that defines a suite of information associated with a key or set of keys. I will use the term "key/public key" and "key structure" to distinguish between the possible interpretations. Key pairs and private keys will not come up here. "Key structure' is not a term you will see outside of this post.
-* Key ID - A hexadecimal string that identifies a key (usually the master key).
-* UID, or User ID - The name and email of the user is stored in one or more UID entries, stored under the Master key.
+* Key ID - A hexadecimal string that identifies a key (usually the primary key).
+* UID, or User ID - The name and email of the user is stored in one or more UID entries, stored under the Primary key.
 * Certification vs. signing - 'Signing' is an action against arbitrary data. 'Certification' is the signing of another key. Ironically, the act of certifying a key is universally called "key signing". Just embrace the contradiction.
 * Key packet - 'Packet' is the term used by RFC4880 to identify a component of the message format. Messages and keys structures are made up of packets and subpackets of various types.
 
@@ -36,11 +36,11 @@ Following is an annotated and edited dump of my key (actually 'key structure', p
 
     gpg -a --export "David Steele" | gpg --list-packets --verbose
 
-where "David Steele" matches a UID for my key. Substitute your name or master key id to see your key structure. Add the '\-\-debug 0x02' option to the second gpg invocation to see the entire contents, including the binary key data (thanks [superuser.com][]).
+where "David Steele" matches a UID for my key. Substitute your name or primary key id to see your key structure. Add the '\-\-debug 0x02' option to the second gpg invocation to see the entire contents, including the binary key data (thanks [superuser.com][]).
 
 [superuser.com]: http://superuser.com/questions/696941/human-readable-dump-of-gpg-public-key
 
-This is a pretty standard published key structure, which is to say that it contains a master certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the master, to avoid [problems][]). I also have an extra public signing subkey with an expiration date, for a couple of [reasons][].
+This is a pretty standard published key structure, which is to say that it contains a primary certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the primary, to avoid [problems][]). I also have an extra public signing subkey with an expiration date, for a couple of [reasons][].
 
 [problems]: http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key
 [reasons]: https://wiki.debian.org/Subkeys#Why.3F
@@ -49,7 +49,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 
 -----
 
-> \# [Master key](#MasterKey)  
+> \# [Primary key](#PrimaryKey)  
 > :public key [packet](#PacketType):  
 > &nbsp;&nbsp;&nbsp;&nbsp;[version 4](#PacketVer), [algo 1](#KeyAlg), created [1281838967](#DatesExpir), expires 0  
 > &nbsp;&nbsp;&nbsp;&nbsp;pkey[0]: [4096 bits]  
@@ -145,13 +145,13 @@ I've linked aspects of the key dump to explanation paragraphs below.
 -----
 
 
-## <a name="MasterKey"></a>Master Key
+## <a name="PrimaryKey"></a>Primary Key
 
-The first packet in a published OpenPGP/gpg key structure is the master signing/certification public key. The overall key structure is referenced by the Key ID of this key.
+The first packet in a published OpenPGP/gpg key structure is the primary signing/certification public key. The overall key structure is referenced by the Key ID of this key.
 
 ### <a name="PacketType"></a>Packet Type
 
-The 'types' of packets in an OpenPGP key structure or message are defined in Section 5 of the RFC ([RFC4880-5][]). The master signing public key uses a packet with a 'tag' value of 6 ([RFC4880-5.5.1.1][]). The tag values are not shown in the gpg key dump - just the resulting type.
+The 'types' of packets in an OpenPGP key structure or message are defined in Section 5 of the RFC ([RFC4880-5][]). The primary signing public key uses a packet with a 'tag' value of 6 ([RFC4880-5.5.1.1][]). The tag values are not shown in the gpg key dump - just the resulting type.
 
 [RFC4880-5]: http://tools.ietf.org/html/rfc4880#section-5
 [RFC4880-5.5.1.1]: http://tools.ietf.org/html/rfc4880#section-5.5.1.1
@@ -201,11 +201,11 @@ The dates in the key structure dump are [Unix epochs][epoch]. Convert to human-r
     $ date -d @1281838967
     Sat Aug 14 22:22:47 EDT 2010
 
-The 'expires' value of '0' means that the key itself has no expiration date. Note that we will find out shortly that there are multiple ways to express key expiration. This mechanism is part of the key definition - changing it would change the Key ID for the Master key, which would in turn invalidate all signatures for the key structure.
+The 'expires' value of '0' means that the key itself has no expiration date. Note that we will find out shortly that there are multiple ways to express key expiration. This mechanism is part of the key definition - changing it would change the Key ID for the Primary key, which would in turn invalidate all signatures for the key structure.
 
 Perhaps for that reason, gpg does not use this field to define the expiration date for a generated key. It is expressed in the key self-signature, as shown later.
 
-There has been a fair amount of mulling about the right strategy for key expiration. My sense it that the consensus is that opinion on expiring Master keys is mixed, encryption subkeys should have no expiration, and signing subkeys should.
+There has been a fair amount of mulling about the right strategy for key expiration. My sense it that the consensus is that opinion on expiring Primary keys is mixed, encryption subkeys should have no expiration, and signing subkeys should.
 
 ### <a name="KeyId"></a>Key ID
 
@@ -231,7 +231,7 @@ Going one step further down the rabbit hole, in some contexts this value needs t
 
 The key id is a shorthand method for referring to a particular key or key structure. The 8-character version is the primary mechanism for referring to a particular key.
 
-The Key ID of the Master public key ('366150CE' in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.
+The Key ID of the Primary public key ('366150CE' in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.
 
 The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is changed, but is unaffected by any changes in any other packets.
 
@@ -249,7 +249,7 @@ The key structure can have more than one user id. For instance, if you want to u
 
 A user id packet is followed by one or more 'signature packets'. 
 
-This is a key point - the key signature covers the contents of the master key packet and the last-encountered user id packet. So, the signature is a certification by the signer that the user identified in the user id is who he says he is, and that he claims ownership of the key.
+This is a key point - the key signature covers the contents of the primary key packet and the last-encountered user id packet. So, the signature is a certification by the signer that the user identified in the user id is who he says he is, and that he claims ownership of the key.
 
 A key signature only covers one user id. Separate signatures are needed if certification is desired for multiple user ids.
 
@@ -261,7 +261,7 @@ Key signatures can be created using the 'sign-key' command in the key edit mode.
 
 ### <a name="SelfSig"/>Self Signature
 
-The 'self signature' is a key signature generated by the master key being signed. It serves as verification that the user id is valid for that key. For version 4 packets, it also provides a number of parameters to be associated with the key/user id pair ([RFC4880-5.2][]).
+The 'self signature' is a key signature generated by the primary key being signed. It serves as verification that the user id is valid for that key. For version 4 packets, it also provides a number of parameters to be associated with the key/user id pair ([RFC4880-5.2][]).
 
 [RFC4880-5.2]: http://tools.ietf.org/html/rfc4880#section-5.2
 
@@ -299,14 +299,14 @@ preferences using the [personal-digest-preferences][] and [cert-digest-algo][] p
 
 ### <a name="SigSubpacket"/>"Endorsing Signature" Subpackets
 
-Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used ([RFC4880-5.2][]). That means such information is validated by the master key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in [RFC4880-5.2.3.1][]
+Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used ([RFC4880-5.2][]). That means such information is validated by the primary key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in [RFC4880-5.2.3.1][]
 
 [RFC4880-5.2]: http://tools.ietf.org/html/rfc4880#section-5.2
 [RFC4880-5.2.3.1]: http://tools.ietf.org/html/rfc4880#section-5.2.3.1
 
 #### <a name="KeyFlags"/>Key Flag Subpacket
 
-I've said a couple of times now that the master key is used for signing, and there is a separate encryption subkey. Well, it is the 'keyflags' field that defines these roles for the keys ([RFC4880-5.2.3.21][]).
+I've said a couple of times now that the primary key is used for signing, and there is a separate encryption subkey. Well, it is the 'keyflags' field that defines these roles for the keys ([RFC4880-5.2.3.21][]).
 
 [RFC4880-5.2.3.21]: http://tools.ietf.org/html/rfc4880#section-5.2.3.21
 
@@ -338,7 +338,7 @@ Flag | gpg character | Description
 0x20 | "A"           | Authentication
 0x80 |               | Held by more than one person
 
-If you look in my key structure dump, you'll see that my master key's key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.
+If you look in my key structure dump, you'll see that my primary key's key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.
 
 There is not much to work with on this flag, under the normal gpg mode. I don't believe that it is editable in gpg, and the values are created automatically on key creation. Also, there is no option on subkeys to create a key which can both sign and encrypt.
 
@@ -381,14 +381,14 @@ Following the self signature are the externally generated key signatures. You ge
 
 ## <a name="EncryptSubkey"/>Encryption Subkey
 
-You can see that this was created at the same time as the master key. As mentioned previously, this is created automatically with \-\-gen-key.
+You can see that this was created at the same time as the primary key. As mentioned previously, this is created automatically with \-\-gen-key.
 
 The parameters have already been discussed.
 
 ## <a name="SigningSubkey"/>Signing Subkey
 
 
-This signing subkey was created in 2014. It, and the encryption subkey, are only self-signed. That alone allows them to inherit the trust from the top level master keys defined by the other master key signatures.
+This signing subkey was created in 2014. It, and the encryption subkey, are only self-signed. That alone allows them to inherit the trust from the top level primary keys defined by the other primary key signatures.
 
 The new wrinkle in this key is an expiration subpacket on the self signature, which puts a time limit on the certification ([RFC4880-5.2.3.6][]).
 
