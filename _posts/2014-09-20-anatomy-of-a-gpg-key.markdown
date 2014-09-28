@@ -42,6 +42,8 @@ where "David Steele" matches a UID for my key. Substitute your name or primary k
 
 [superuser.com]: http://superuser.com/questions/696941/human-readable-dump-of-gpg-public-key
 
+Note that there are [other tools](#OtherTools) which provide more information or features for this task. I use gpg as the least common denominator tool.
+
 This is a pretty standard published key certificate, which is to say that it contains a primary certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the primary, to avoid [problems][]). I also have an extra public signing subkey with an expiration date, for a couple of [reasons][].
 
 [problems]: http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key
@@ -397,6 +399,18 @@ This signing subkey was created in 2014. It, and the encryption subkey, are only
 The new wrinkle in this key is an expiration subpacket on the self signature, which puts a time limit on the certification ([RFC4880-5.2.3.6][]).
 
 [RFC4880-5.2.3.6]: http://tools.ietf.org/html/rfc4880#section-5.2.3.6
+
+## <a name="OtherTools"/>Other Tools
+
+The [hokey][] utility, from the hopenpgp-tools package, can perform a 'lint' operation on your certificate:
+
+[hokey]: https://we.riseup.net/riseuplabs+paow/openpgp-best-practices#openpgp-key-checks
+
+    $ hkt export-pubkeys <fingerprint> | hokey lint
+
+The pgpdump program provides more information in the dump, and also has a [web interface][].
+
+[web interface]: http://www.pgpdump.net/
 
 ----------
 
