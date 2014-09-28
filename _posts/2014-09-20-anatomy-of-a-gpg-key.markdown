@@ -18,29 +18,31 @@ Here are some takeaways I would have loved to have had going into this:
 
 
 ## Some Terms
-It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the [web of trust][]. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
-
-[web of trust]: https://www.gnupg.org/gph/en/manual/x334.html#AEN384
+It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
 
 * Primary key vs. subkey - A PGP key may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The Primary key is the top level key.
-* Public key - This post is working with the published version of the key structure. Therefore, only public keys are described (the ones that encrypt and create signatures). Your local version of your key also includes the associated private keys (for decryption and signature verification), to define the key pair.
-* Key structure - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word 'key'. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP structure that defines a suite of information associated with a key or set of keys. I will use the term "key/public key" and "key structure" to distinguish between the possible interpretations. Key pairs and private keys will not come up here. "Key structure' is not a term you will see outside of this post.
+* Public key - This post is working with the published version of the key certificate. Therefore, only public keys are described (the ones that encrypt and create signatures). Your local version of your key also includes the associated private keys (for decryption and signature verification), to define the key pair.
+* Key certificate - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word 'key'. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP 'certificate' that defines a suite of information associated with a key or set of keys. I will use the term "key/public key" and "key certificate" to distinguish between the possible interpretations. Key pairs and private keys will not come up here.
 * Key ID - A hexadecimal string that identifies a key (usually the primary key).
 * UID, or User ID - The name and email of the user is stored in one or more UID entries, stored under the Primary key.
 * Certification vs. signing - 'Signing' is an action against arbitrary data. 'Certification' is the signing of another key. Ironically, the act of certifying a key is universally called "key signing". Just embrace the contradiction.
-* Key packet - 'Packet' is the term used by RFC4880 to identify a component of the message format. Messages and keys structures are made up of packets and subpackets of various types.
+* Key packet - 'Packet' is the term used by RFC4880 to identify a component of the message format. Messages and keys certificates are made up of packets and subpackets of various types.
+* Trust, Validity, and the Web of Trust - gpg uses a model of 'trust' of users (defined locally-only using the 'trust' edit command) and reported 'validity'
+of keys (defined by key signatures/certificates). The combination creates a "Web of Trust", starting with locally-defined trust statements about users, and passing through multiple levels of key-signature-defined validity links to other keys. Gpg uses the web of trust to determine if a key is acceptable for use without warning the user. There is a writeup in the [GNU Privacy Handbook][] that covers the concepts well enough if you have the terms straight. Documentation often uses the word 'trust' for both 'trust' and 'validity'. I mention all of this only to note that this document is concerned with 'validity'.
+
+[GNU Privacy Handbook]: https://www.gnupg.org/gph/en/manual/x334.html#AEN384
 
 ## My Key
 
-Following is an annotated and edited dump of my key (actually 'key structure', per my parlance), originally generated with:
+Following is an annotated and edited dump of my key certificate, originally generated with:
 
     gpg -a --export "David Steele" | gpg --list-packets --verbose
 
-where "David Steele" matches a UID for my key. Substitute your name or primary key id to see your key structure. Add the '\-\-debug 0x02' option to the second gpg invocation to see the entire contents, including the binary key data (thanks [superuser.com][]).
+where "David Steele" matches a UID for my key. Substitute your name or primary key id to see your key certificate. Add the '\-\-debug 0x02' option to the second gpg invocation to see the entire contents, including the binary key data (thanks [superuser.com][]).
 
 [superuser.com]: http://superuser.com/questions/696941/human-readable-dump-of-gpg-public-key
 
-This is a pretty standard published key structure, which is to say that it contains a primary certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the primary, to avoid [problems][]). I also have an extra public signing subkey with an expiration date, for a couple of [reasons][].
+This is a pretty standard published key certificate, which is to say that it contains a primary certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the primary, to avoid [problems][]). I also have an extra public signing subkey with an expiration date, for a couple of [reasons][].
 
 [problems]: http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key
 [reasons]: https://wiki.debian.org/Subkeys#Why.3F
@@ -147,11 +149,11 @@ I've linked aspects of the key dump to explanation paragraphs below.
 
 ## <a name="PrimaryKey"></a>Primary Key
 
-The first packet in a published OpenPGP/gpg key structure is the primary signing/certification public key. The overall key structure is referenced by the Key ID of this key.
+The first packet in a published OpenPGP/gpg key certificate is the primary signing/certification public key. The overall key certificate is referenced by the Key ID of this key.
 
 ### <a name="PacketType"></a>Packet Type
 
-The 'types' of packets in an OpenPGP key structure or message are defined in Section 5 of the RFC ([RFC4880-5][]). The primary signing public key uses a packet with a 'tag' value of 6 ([RFC4880-5.5.1.1][]). The tag values are not shown in the gpg key dump - just the resulting type.
+The 'types' of packets in an OpenPGP key certificate or message are defined in Section 5 of the RFC ([RFC4880-5][]). The primary signing public key uses a packet with a 'tag' value of 6 ([RFC4880-5.5.1.1][]). The tag values are not shown in the gpg key dump - just the resulting type.
 
 [RFC4880-5]: http://tools.ietf.org/html/rfc4880#section-5
 [RFC4880-5.5.1.1]: http://tools.ietf.org/html/rfc4880#section-5.5.1.1
@@ -194,14 +196,14 @@ The length of the key is important. Mine is 4096 bits, based on the current [rec
 
 ### <a name="DatesExpir"></a>Dates and Expiration
 
-The dates in the key structure dump are [Unix epochs][epoch]. Convert to human-readable with:
+The dates in the key certificate dump are [Unix epochs][epoch]. Convert to human-readable with:
 
 [epoch]: http://en.wikipedia.org/wiki/Unix_time
 
     $ date -d @1281838967
     Sat Aug 14 22:22:47 EDT 2010
 
-The 'expires' value of '0' means that the key itself has no expiration date. Note that we will find out shortly that there are multiple ways to express key expiration. This mechanism is part of the key definition - changing it would change the Key ID for the Primary key, which would in turn invalidate all signatures for the key structure.
+The 'expires' value of '0' means that the key itself has no expiration date. Note that we will find out shortly that there are multiple ways to express key expiration. This mechanism is part of the key definition - changing it would change the Key ID for the Primary key, which would in turn invalidate all signatures for the key certificate.
 
 Perhaps for that reason, gpg does not use this field to define the expiration date for a generated key. It is expressed in the key self-signature, as shown later.
 
@@ -221,7 +223,7 @@ The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed 
     sub   4096R/0D929394 2010-08-15
     sub   4096R/0A817A82 2014-08-15 [expires: 2019-08-14]
 
-The key structure dump is expressing this fingerprint as a 'key id', taking the last 16 characters of that fingerprint (again, [rfc4880-12.2][]).
+The key certificate dump is expressing this fingerprint as a 'key id', taking the last 16 characters of that fingerprint (again, [rfc4880-12.2][]).
 
 The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id, shown on the 'pub' line for the fingerprint call above. It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
 
@@ -229,7 +231,7 @@ The gpg program muddies the waters a bit by using the last 8 characters of the f
 
 Going one step further down the rabbit hole, in some contexts this value needs to have "0x" prepended ('0x366150CE'). I've run across this in a key server search function.
 
-The key id is a shorthand method for referring to a particular key or key structure. The 8-character version is the primary mechanism for referring to a particular key.
+The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key.
 
 The Key ID of the Primary public key ('366150CE' in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.
 
@@ -237,13 +239,13 @@ The fingerprint/key id is a hash of the entire key packet, and only the key pack
 
 ## <a name="UID1"></a>User ID
 
-The user ID packet defines a name/email address that is associated with the key structure ([RFC4880-5.11][]). The gpg program will store it in [RFC2822][] format ("David Steele <dsteele@gmail.com\>") based on the name and email you provide it when you generated the key.
+The user ID packet defines a name/email address that is associated with the key certificate ([RFC4880-5.11][]). The gpg program will store it in [RFC2822][] format ("David Steele <dsteele@gmail.com\>") based on the name and email you provide it when you generated the key.
 
 [RFC2822]: http://tools.ietf.org/html/rfc2822#section-3.4
 
 [RFC4880-5.11]: http://tools.ietf.org/html/rfc4880#section-5.11
 
-The key structure can have more than one user id. For instance, if you want to use the key structure with more than one email account, multiple user ids would be needed.
+The key certificate can have more than one user id. For instance, if you want to use the key certificate with more than one email account, multiple user ids would be needed.
 
 ### <a name="EndorsingSigs"/>Endorsing Signatures
 
@@ -253,7 +255,7 @@ This is a key point - the key signature covers the contents of the primary key p
 
 A key signature only covers one user id. Separate signatures are needed if certification is desired for multiple user ids.
 
-Signatures are identified by the 'signature type', shown as 'sigclass' in the packet structure dump. Types/classes 0x10 through 0x13 are key signatures ([RFC4880-5.2.1][]).
+Signatures are identified by the 'signature type', shown as 'sigclass' in the packet certificate dump. Types/classes 0x10 through 0x13 are key signatures ([RFC4880-5.2.1][]).
 
 [RFC4880-5.2.1]: http://tools.ietf.org/html/rfc4880#section-5.2.1
 
@@ -279,7 +281,7 @@ It appears that the levels are largely ignored for key validation purposes. The 
 > certifications.  Some implementations can issue 0x11-0x13
 > certifications, but few differentiate between the types.
 
-I have both 0x10 and 0x13 key signatures in my key structure.
+I have both 0x10 and 0x13 key signatures in my key certificate.
 
 ### <a name="DigestAlgo"/>Digest Algorithm
 
@@ -338,7 +340,7 @@ Flag | gpg character | Description
 0x20 | "A"           | Authentication
 0x80 |               | Held by more than one person
 
-If you look in my key structure dump, you'll see that my primary key's key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.
+If you look in my key certificate dump, you'll see that my primary key's key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.
 
 There is not much to work with on this flag, under the normal gpg mode. I don't believe that it is editable in gpg, and the values are created automatically on key creation. Also, there is no option on subkeys to create a key which can both sign and encrypt.
 
@@ -377,7 +379,7 @@ The key server preferences subpacket is also a bit light ([RFC4880-5.2.3.17][])
 
 ### <a name="ExternalSigs"/>External Key Signatures
 
-Following the self signature are the externally generated key signatures. You get these when you import a copy of your key that has been signed remotely and exported by a person who is certifying your key structure/user id. Note that I show two signatures from the same user/key, ('F7EBEE8EB7982329'), certifying my two user id's independently.
+Following the self signature are the externally generated key signatures. You get these when you import a copy of your key that has been signed remotely and exported by a person who is certifying your key certificate/user id. Note that I show two signatures from the same user/key, ('F7EBEE8EB7982329'), certifying my two user id's independently.
 
 ## <a name="EncryptSubkey"/>Encryption Subkey
 
