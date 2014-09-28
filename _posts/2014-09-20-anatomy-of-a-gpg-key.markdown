@@ -223,15 +223,17 @@ The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed 
     sub   4096R/0D929394 2010-08-15
     sub   4096R/0A817A82 2014-08-15 [expires: 2019-08-14]
 
-The key certificate dump is expressing this fingerprint as a 'key id', taking the last 16 characters of that fingerprint (again, [rfc4880-12.2][]).
+The key certificate dump is expressing this fingerprint as a 'key id' (or 'long key id'), taking the last 16 characters of that fingerprint (again, [rfc4880-12.2][]).
 
-The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id, shown on the 'pub' line for the fingerprint call above. It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
+The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id ('short key id'), shown on the 'pub' line for the fingerprint call above. It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
 
 [RFC4880-3.3]: http://tools.ietf.org/html/rfc4880#section-3.3
 
 Going one step further down the rabbit hole, in some contexts this value needs to have "0x" prepended ('0x366150CE'). I've run across this in a key server search function.
 
-The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key.
+The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and many consider this a [terrible idea][].
+
+[terrible idea]: https://www.debian-administration.org/users/dkg/weblog/105
 
 The Key ID of the Primary public key ('366150CE' in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.
 
