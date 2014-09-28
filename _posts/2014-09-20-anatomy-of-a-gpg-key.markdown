@@ -11,7 +11,7 @@ For me, the key to understanding how to work with gpg was to understand the pack
 
 ### TL;DR
 
-Here are some takeaways I would have loved to have had going into this:
+Here are some takeaways I wish I had going into this:
 
 * Most key parameters are stored in the self signature. That means they can be changed at will by the key owner without affecting the status of external key signatures.
 * Subkeys need only be self-signed (which is automatic). Trust from external signatures is provided transitively.
