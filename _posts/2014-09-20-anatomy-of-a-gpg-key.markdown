@@ -5,7 +5,7 @@ date:   2014-09-20 21:29:00
 categories: gpg
 ---
 
-I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool gpg. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were tangential to the particular procedure, and therefore not covered where I needed it to be.
+I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool 'gpg'. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were tangential to the particular procedure, and therefore not covered where I needed it to be.
 
 For me, the key to understanding how to work with gpg was to understand the packet structure of the underlying OpenPGP Message Format ([RFC4880](http://tools.ietf.org/html/rfc4880)), which defines how gpg messages, signatures, and key material are stored. The goal of this post is to grease the skids for the next guy, by tying the key storage format to the RFC definition, and to the associated gpg commands and parameters.
 
@@ -20,13 +20,13 @@ Here are some takeaways I wish I had going into this:
 ## Some Terms
 It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
 
-* Primary key vs. subkey - A PGP key may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The Primary key is the top level key.
+* Primary key vs. subkey - A PGP key certificate may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The primary key is the top level key. It is often referred to elsewhere as the master key.
 * Public key - This post is working with the published version of the key certificate. Therefore, only public keys are described (the ones that encrypt and create signatures). Your local version of your key also includes the associated private keys (for decryption and signature verification), to define the key pair.
-* Key certificate - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word 'key'. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP 'certificate' that defines a suite of information associated with a key or set of keys. I will use the term "key/public key" and "key certificate" to distinguish between the possible interpretations. Key pairs and private keys will not come up here.
+* Key certificate - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word 'key'. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP 'certificate' that defines a suite of information associated with a key or set of keys. I will use the term "key/public key" and "key certificate" to distinguish between the possible interpretations. Key pairs and private keys will not come up here. We will be focusing on the key certificate.
 * Key ID - A hexadecimal string that identifies a key (usually the primary key).
 * UID, or User ID - The name and email of the user is stored in one or more UID entries, stored under the Primary key.
 * Certification vs. signing - 'Signing' is an action against arbitrary data. 'Certification' is the signing of another key. Ironically, the act of certifying a key is universally called "key signing". Just embrace the contradiction.
-* Key packet - 'Packet' is the term used by RFC4880 to identify a component of the message format. Messages and keys certificates are made up of packets and subpackets of various types.
+* Key packet - 'Packet' is the term used by RFC4880 to identify a component of the message/certificate format. Messages and keys certificates are made up of packets and subpackets of various types.
 * Trust, Validity, and the Web of Trust - gpg uses a model of 'trust' of users (defined locally-only using the 'trust' edit command) and reported 'validity'
 of keys (defined by key signatures/certificates). The combination creates a "Web of Trust", starting with locally-defined trust statements about users, and passing through multiple levels of key-signature-defined validity links to other keys. Gpg uses the web of trust to determine if a key is acceptable for use without warning the user. There is a writeup in the [GNU Privacy Handbook][] that covers the concepts well enough if you have the terms straight. Documentation often uses the word 'trust' for both 'trust' and 'validity'. I mention all of this only to note that this document is concerned with 'validity'.
 
