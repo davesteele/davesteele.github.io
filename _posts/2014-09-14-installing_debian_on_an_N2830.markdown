@@ -62,7 +62,7 @@ GNOME 3
 XFCE Wallpaper
 --------------
 
-So now the system works OK, but there is a problem with the wallpaper. It is reset to a standard mouse mascot background on every login, which only covers part of the screen. To fix, I toggle a wallpaper every time.
+So now the system works OK, but there is a problem with the wallpaper. It is reset to a standard mouse mascot background on every login, which only covers part of the screen. To fix, I toggle a wallpaper every time. (Update 11/14 - the problem derived from multiple overlaid monitors fighting for wallpaper updates - disable the monitor tied to the external display port, or set all monitors to the same size)
 
 
 Honestly, this is the kind of experience I expected 10 years ago, when we were only a few years into the "Year of the Linux Desktop". Nowadays I expect better.
