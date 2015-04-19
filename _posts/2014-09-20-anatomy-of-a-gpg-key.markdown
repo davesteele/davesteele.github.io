@@ -15,6 +15,7 @@ Here are some takeaways I wish I had going into this:
 
 * Most key parameters are stored in the self signature. That means they can be changed at will by the key owner without affecting the status of external key signatures.
 * Subkeys need only be self-signed (which is automatic). Trust from external signatures is provided transitively.
+* (Edit - 19 Apr 2015) gpg [automatically uses the newest subkey](http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM) to sign/encrypt.
 
 
 ## Some Terms
@@ -399,6 +400,9 @@ This signing subkey was created in 2014. It, and the encryption subkey, are only
 The new wrinkle in this key is an expiration subpacket on the self signature, which puts a time limit on the certification ([RFC4880-5.2.3.6][]).
 
 [RFC4880-5.2.3.6]: http://tools.ietf.org/html/rfc4880#section-5.2.3.6
+
+(Added - 19 Apr 2015) Note that gpg will automatically use the [most recent signing/encryption subkey](http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM) when the master is referenced. To force a specific key/subkey, add an
+[exclamation mark](http://www.enricozini.org/2006/tips/gpg-select-subkey/) after the Key ID.
 
 ## <a name="OtherTools"/>Other Tools
 
