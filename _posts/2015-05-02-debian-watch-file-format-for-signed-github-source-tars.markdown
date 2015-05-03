@@ -74,7 +74,7 @@ directory.
 Some [older announcements][] state that the key is stored in
 *debian/upstream-signing-key.pgp*. Current documentation says that a binary key
 can be stored in *debian/upstream/signing-key.pgp*, or an ascii armored one in
-*debian/upstream/signing-key.pgp*. All currently work, but support for the
+*debian/upstream/signing-key.asc*. All currently work, but support for the
 first form will be eventually removed.
 
 [older announcements]: http://debian-administration.org/users/dkg/weblog/106
