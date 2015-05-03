@@ -84,10 +84,10 @@ a:visited { color: #205caa; }
   font-size: 18px;
   font-weight: 300;
   letter-spacing: -.5px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
-.site-footer .column { float: left; margin-bottom: 15px; }
+.site-footer .column { float: left; margin-bottom: 16px; }
 
 .footer-col-1 {
   width: 270px; /*fallback*/
@@ -117,7 +117,7 @@ a:visited { color: #205caa; }
 
 .site-footer li,
 .site-footer p {
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: -.3px;
   color: #828282;
 }
@@ -164,7 +164,7 @@ a:visited { color: #205caa; }
 
 .posts .post-date {
   display: block;
-  font-size: 15px;
+  font-size: 16px;
   color: #818181;
 }
 
@@ -182,7 +182,7 @@ a:visited { color: #205caa; }
 }
 
 .post-header .meta {
-  font-size: 15px;
+  font-size: 16px;
   color: #818181;
   margin-top: 5px;
 }
@@ -239,7 +239,7 @@ a:visited { color: #205caa; }
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
-  font-size: 15px;
+  font-size: 16px;
   overflow:scroll;
 }
 
@@ -411,6 +411,6 @@ a:visited { color: #205caa; }
     float: none;
     clear: both;
     width: auto;
-    margin: 0 0 15px; }
+    margin: 0 0 16px; }
 
 }
