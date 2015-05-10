@@ -27,6 +27,10 @@ storing the tar locally.
 [tags]: https://github.com/davesteele/splitcpy/tags
 [releases]: https://github.com/davesteele/splitcpy/releases
 
+This is actually not good enough, as it stands, to work in a git-buildpackage
+environment. The final glob should be more specific, to match only against the
+branch holding the 'upstream' (that is, the non-debian) code branch.
+
 [Typical guidance][] for specifying the signature url, using the pgpsigurlmangle
 option, tells how to point to the file when it is stored in the same directory
 as the tar, with an appended ".asc":
@@ -48,10 +52,10 @@ I stored the signatures in a dedicated [signatures][] branch, and used a
 
     opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/splitcpy-$1\.tar\.gz/,\
     pgpsigurlmangle=s/github.com/raw.githubusercontent.com/;\
-    s/archive\/upstream/signatures/;\
+    s/archive\/master/signatures/;\
     s/([^\/]+)\.tar\.gz/splitcpy-$1\.tar\.gz/;\
     s/$/.asc/ \
-     https://github.com/davesteele/splitcpy/tags (?:.*/)?v?(\d[\d\.]*)\.tar\.gz
+     https://github.com/davesteele/splitcpy/tags .+master/(\d[\d\.]*)\.tar\.gz
 
 A couple things to note here:
 
@@ -66,6 +70,7 @@ semicolons.
   * The second one points to the right branch.
   * The third one fixes the file name.
   * The fource one adds the 'asc' extension.
+* I'm using 'master' as the git-buildpackage 'upstream' branch.
 * Occurrences of 'davesteele' and 'splitcpy' will need to be replaced for
 other instances.
 
