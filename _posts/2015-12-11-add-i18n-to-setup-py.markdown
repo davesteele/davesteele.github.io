@@ -28,9 +28,6 @@ First, add this code to setup.py:
     
     def modir(lang):
         mobase = "build/mo"
-        if not os.path.exists(mobase):
-            os.makedirs(mobase)
-    
         return os.path.join(mobase, lang)
     
     
