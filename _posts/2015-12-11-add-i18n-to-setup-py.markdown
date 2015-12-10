@@ -35,8 +35,6 @@ First, add this code to setup.py:
     
     
     def mkmo(lang):
-        rmmo(lang)
-    
         outpath = modir(lang)
         if os.path.exists(path):
             shutil.rmtree(path)
