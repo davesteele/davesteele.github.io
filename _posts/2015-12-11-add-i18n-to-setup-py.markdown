@@ -21,6 +21,8 @@ First, add this code to setup.py:
     import os
     import shutil
     
+    package = "mypackage"      # <- change this
+    
     podir = "po"
     pos = [x for x in os.listdir(podir) if x[-3:] == ".po"]
     langs = sorted([os.path.split(x)[-1][:-3] for x in pos])
@@ -39,7 +41,7 @@ First, add this code to setup.py:
     
         inpath = os.path.join(podir, lang + ".po")
     
-        cmd = "msgfmt %s -o %s/gnome-gmail.mo" % (inpath, outpath)
+        cmd = "msgfmt %s -o %s/%s.mo" % (inpath, outpath, package)
     
         os.system(cmd)
     
@@ -74,7 +76,7 @@ First, add this code to setup.py:
     
     def polist():
         dst_tmpl = "share/locale/%s/LC_MESSAGES/"
-        polist = [(dst_tmpl % x, ["%s/gnome-gmail.mo" % modir(x)]) for x in langs]
+        polist = [(dst_tmpl % x, ["%s/%s.mo" % (modir(x)]), package) for x in langs]
     
         return polist
     
@@ -91,13 +93,13 @@ First, add this code to setup.py:
     
         def run(self):
             print("Creating POT file")
-            cmd = "cd po; intltool-update --pot --gettext-package=gnome-gmail"
+            cmd = "cd po; intltool-update --pot --gettext-package=%s" % package
             os.system(cmd)
     
             for lang in langs:
                 print("Updating %s PO file" % lang)
                 cmd = "cd po; intltool-update --dist \
-                       --gettext-package=gnome-gmail %s >/dev/null 2>&1" % lang
+                       --gettext-package=%s %s >/dev/null 2>&1" % (package, lang)
                 os.system(cmd)
     
     
@@ -120,10 +122,10 @@ Then modify the *setup()* call to use these new commands, and to add the
 compiled translation files to the install:
 
     setup(
-        name='mypackage',
+        name=package,
         ...
         data_files=[
-            ('share/icons/hicolor/16x16/apps', ['icons/16x16/gnome-gmail.png']),
+            ('share/icons/hicolor/16x16/apps', ['icons/16x16/mypackage.png']),
             ...
                    ] + polist(),
         ...
