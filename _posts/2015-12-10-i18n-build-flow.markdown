@@ -178,7 +178,7 @@ Each *.mo* file gets installed with the package, to the path
 
 #### Step 1 - _String identification in text source_
 
-Every *&lt;file&gt;* in the build environment which is gong to be translated
+Every *&lt;file&gt;* in the build environment which is going to be translated
 is renamed to *&lt;file&gt;.in*.
 
 Edit the *.in* files to identify translatable strings. For desktop files,
@@ -234,8 +234,8 @@ translation files.
 
 ### Cleanup
 
-The process described here will leave a *&lt;file.in&gt;* for every
-*&lt;file.in&gt;*, the *&lt;build&gt;/mo* directory tree, and a
+The process described here will leave a *&lt;file&gt;* for every
+*&lt;file&gt;.in*, the *&lt;build&gt;/mo* directory tree, and a
 *po/.intltool-merge-cache* file. These will need to be cleaned up.
 
 ## Summary
