@@ -5,7 +5,7 @@ date:   2015-12-11 i10:50:00
 categories: development
 ---
 
-Python support for the translation file installation is not great. Once you
+Python support for translation file installation is not great. Once you
 understand [how the the i18n build process works], it's not too hard to
 hand-roll the tasks yourself. Here's how I did it.
 
