@@ -17,6 +17,9 @@ First, add this code to setup.py:
     from distutils.core import setup, Command
     from distutils.command.build import build
     from distutils.command.clean import clean
+
+    # for setuptools use
+    # from setuptools.command.build_py import build_py as build
     
     import os
     import shutil
@@ -35,9 +38,9 @@ First, add this code to setup.py:
     
     def mkmo(lang):
         outpath = modir(lang)
-        if os.path.exists(path):
-            shutil.rmtree(path)
-        os.mkdir(outpath)
+        if os.path.exists(outpath):
+            shutil.rmtree(outpath)
+        os.makedirs(outpath)
     
         inpath = os.path.join(podir, lang + ".po")
     
@@ -76,7 +79,7 @@ First, add this code to setup.py:
     
     def polist():
         dst_tmpl = "share/locale/%s/LC_MESSAGES/"
-        polist = [(dst_tmpl % x, ["%s/%s.mo" % (modir(x)]), package) for x in langs]
+        polist = [(dst_tmpl % x, ["%s/%s.mo" % (modir(x), package)]) for x in langs]
     
         return polist
     
