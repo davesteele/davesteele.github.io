@@ -51,7 +51,7 @@ BTW, apparently the answer to the concrete question is "Nothing".
 Infrastructure Update Process
 -----------------------------
 
-One session was about the paradoxes associated with the current process for updating Debian infrastructure. This was involved, but one core assertion was that the person developing a new feature needs to be responsible for insuring it works right. On the flip side, the infrastrucure folk felt no responsibility to provide platform support, saying that documentation on replication was sufficient. When it was pointed out that it was not possible to do so (possibly because the schema is not  correct in any available source), they were unswayed.
+One session was about the paradoxes associated with the current process for updating Debian infrastructure. This was involved, but one core assertion was that the person developing a new feature needs to be responsible for insuring it works right. On the flip side, the infrastructure folk felt no responsibility to provide platform support, saying that documentation on replication was sufficient. When it was pointed out that it was not possible to do so (possibly because the schema is not  correct in any available source), they were unswayed.
 
 ***
 
