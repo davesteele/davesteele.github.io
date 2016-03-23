@@ -69,7 +69,7 @@ semicolons.
   * The first one replaces the url site name with the GitHub 'raw' host.
   * The second one points to the right branch.
   * The third one fixes the file name.
-  * The fource one adds the 'asc' extension.
+  * The fourth one adds the 'asc' extension.
 * I'm using 'master' as the git-buildpackage 'upstream' branch.
 * Occurrences of 'davesteele' and 'splitcpy' will need to be replaced for
 other instances.
