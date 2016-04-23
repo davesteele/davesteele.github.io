@@ -87,7 +87,7 @@ working VPN in about 10 minutes.
     /etc/init.d/pptpd restart
 
 The script was developed for Debian 'wheezy', but should work on any
-Debian-derivitive. Even if it doesn't run successfully to completion on
+Debian-derivative. Even if it doesn't run successfully to completion on
 your distribution, it can serve as a highly-structure howto for manual
 installation.
 

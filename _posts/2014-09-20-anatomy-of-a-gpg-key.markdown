@@ -276,7 +276,7 @@ Self signatures are generated automatically by gpg, as keys are generated as par
 
 ### <a name="SigClass"/>Signature Class
 
-Again, the key signature type, or 'sigclass', identifies the signature as a key signature. It also claims to provide a level of assurance of that certification, from "does not make any particular assertion" to "substantial verification of the claim of identity ([RFC4880-5.2][]).
+Again, the key signature type, or 'sigclass', identifies the signature as a key signature. It also claims to provide a level of assurance of that certification, from "does not make any particular assertion" to "substantial verification of the claim of identity" ([RFC4880-5.2][]).
 
 It appears that the levels are largely ignored for key validation purposes. The Debian key signing guidlines recommends using '[casual][]', which I believe maps to 0x12. However, the RFC states:
 

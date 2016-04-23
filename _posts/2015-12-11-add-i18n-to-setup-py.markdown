@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Add i18n support to your Python Package Install"
-date:   2015-12-11 i10:50:00
+date:   2015-12-11 10:50:00
 categories: development
 ---
 
