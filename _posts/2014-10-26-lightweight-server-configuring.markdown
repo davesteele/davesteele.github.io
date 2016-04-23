@@ -30,8 +30,8 @@ managing changes for potential rollback. I just want to define and restore
 quickly. It also would mix my services configurations together. I'd like to
 keep them separate.
 
-[Roberto Sánchez]: http://www.ohiolinux.org/sessions/using-git-manage-your-systems-configuration
-[presentation]: http://www.ohiolinux.org/sites/www.ohiolinux.org/files/sites/ohiolinux.org/files/slides/using_git_to_manage_your_systems_configuration_0.odp
+[Roberto Sánchez]: http://people.connexer.com/~roberto/main
+[presentation]: http://people.connexer.com/~roberto/documents/olf2014/using_git_to_manage_your_systems_configuration.pdf
 [etckeeper]: https://joeyh.name/code/etckeeper/
 
 Serendipitously, Reddit r/programming last week had a [reference][] to the use
