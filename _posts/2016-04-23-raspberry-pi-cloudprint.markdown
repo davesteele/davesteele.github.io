@@ -73,7 +73,7 @@ printer) and establish Google Cloud Print authentication
 with:
 
     sudo systemctl restart cloudprintd
-    sudo cps-auth <cloudprint account>
+    sudo cps-auth <Google account>
 
 The output of the _cps_auth_ command will include a URL. Copy this URL to your browser,
 and use it to establish authentication. 
