@@ -19,6 +19,7 @@ your local printer(s) visible to Cloud Print. This is made possible using
 Before you start, you'll need a Raspberry Pi 2 or newer with:
 
 * Raspbian Jessie (Stretch is even better - see Notes)
+* A root partition that is bigger than the default 4G
 * Internet connectivity
 * Access to a printer via the network or USB
 
@@ -38,10 +39,12 @@ if there are newer versions of the packages.
 Next, install the packages:
 
     sudo dpkg -i cloudprint*.deb
+    sudo apt-get update
     sudo apt-get -f install
 
 The first command will likely complain that some dependencies are not
-installed. The second command will install those dependencies.
+installed. The last command will install those dependencies (in my case,
+there were over 40).
 
 Now that [CUPS](https://www.cups.org/) is installed, make it's web interface
 available on the network, accessible to the user _pi_:
