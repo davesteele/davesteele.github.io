@@ -7,24 +7,29 @@ categories: raspberrypi
 
 ## Making a Raspberry Pi Google Cloud Print Proxy
 
-Google Cloud Print has become a requirement for me - no more dealing
+Google [Cloud Print](https://www.google.com/cloudprint/learn/) has become
+a requirement for me - no more dealing
 with drivers, and I can print from anywhere using my phone. But, not all
 printers support the service (or support it adequately - I'm looking at you,
 Brother).
 
-This is how to turn your Raspberry Pi into a Google Cloud Print proxy, making
+Here's how to turn a headless Raspberry Pi into a Google Cloud Print proxy, making
 your local printer(s) visible to Cloud Print. This is made possible using
 [armoo](https://github.com/armooo)'s cloudprint proxy software.
 
 Before you start, you'll need a Raspberry Pi 2 or newer with:
 
 * Raspbian Jessie (Stretch is even better - see Notes)
-* A root partition that is bigger than the default 4G
+* A root partition that is bigger than the default 4G (16GB recommended)
 * Internet connectivity
 * Access to a printer via the network or USB
 
-I'm assuming that your Pi is headless (no keyboard/mouse/video attached),
-because I hate wires.
+You'll also need another computer on the same network with an ssh client
+(like [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/)) and
+a web browser logged in to your Google account. What you don't need is a
+desktop environment on the Pi, or a connected
+keyboard/monitor/mouse. All interaction can be achieved via ssh and
+another browser connected to the network.
 
 ### Step 1 - Install
 
@@ -50,7 +55,7 @@ Now that [CUPS](https://www.cups.org/) is installed, make it's web interface
 available on the network, accessible to the user _pi_:
 
     sudo sed -i 's/Listen localhost:631/Listen \*:631/' /etc/cups/cupsd.conf
-    sudo sed -r -i 's/(Order allow\,deny)/\1\n    Allow all/' /etc/cups/cupsd.conf
+    sudo sed -r -i 's/(Order allow\,deny)/\1\n  Allow all/' /etc/cups/cupsd.conf
     sudo usermod -a -G lpadmin pi
     sudo systemctl restart cups
 
@@ -61,17 +66,21 @@ At this point you should have the _cups_ and _cloudprintd_ services running.
 Use the CUPS web interface at _http&#58;//&lt;piaddr&gt;:631/_ to add a
 printer to your setup. Your browser may complain about unsafe connections
 for _https_ links. Allow these connections. When it asks, use the _pi_
-users credentials.
+user credentials.
 
 From the command line on the Pi, restart the proxy (to register the new
 printer) and establish Google Cloud Print authentication
 with:
 
     sudo systemctl restart cloudprintd
-    sudo cps-auth
+    sudo cps-auth <cloudprint account>
 
 The output of the _cps_auth_ command will include a URL. Copy this URL to your browser,
 and use it to establish authentication. 
+
+Now restart the cloudprint service to use this account.
+
+    sudo systemctl restart cloudprintd
 
 ### Step 3 - Print
 
