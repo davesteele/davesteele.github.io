@@ -13,7 +13,7 @@ with drivers, and I can print from anywhere using my phone. But, not all
 printers support the service (or support it adequately - I'm looking at you,
 Brother).
 
-Here's how to turn a headless Raspberry Pi into a Google Cloud Print proxy, making
+Here's a simple procedure to turn a headless Raspberry Pi into a Google Cloud Print proxy, making
 your local printer(s) visible to Cloud Print. This is made possible using
 [armoo](https://github.com/armooo)'s cloudprint proxy software.
 
@@ -33,31 +33,30 @@ another browser connected to the network.
 
 ### Step 1 - Install
 
-First, establish an ssh session with the Pi, and get the cloudprint packages:
+Establish an ssh session with the Pi, and run the following commands
+to install the required software from the [cloudprint repository].
 
-    wget http://davesteele.github.io/cloudprint-service/deb/cloudprint-service_0.13-1+deb8u1+ppa1_all.deb
-    wget http://davesteele.github.io/cloudprint-service/deb/cloudprint_0.13-1+deb8u1+ppa1_all.deb
+[cloudprint repository]: http://davesteele.github.io/cloudprint-service/
 
-You may want to check http://davesteele.github.io/cloudprint-service/ to see
-if there are newer versions of the packages.
+Add the cloudprint repo to your apt environment.
 
-Next, install the packages:
-
-    sudo dpkg -i cloudprint*.deb
+    echo "deb http://davesteele.github.io/cloudprint-service/repo cloudprint-jessie main" | sudo tee /etc/apt/sources.list.d/cloudprint.list
+    wget -q -O - https://davesteele.github.io/key-366150CE.pub.txt | sudo apt-key add -
     sudo apt-get update
-    sudo apt-get -f install
 
-The first command will likely complain that some dependencies are not
-installed. The last command will install those dependencies (in my case,
-there were over 40).
+ Install the software. This will likely involve more than 40 packages.
 
-Now that [CUPS](https://www.cups.org/) is installed, make it's web interface
-available on the network, accessible to the user _pi_:
+    sudo apt-get -y install cloudprint-service
+
+Make the [CUPS] web page externally accessible.
+
+[CUPS]: https://www.cups.org/
 
     sudo sed -i 's/Listen localhost:631/Listen \*:631/' /etc/cups/cupsd.conf
     sudo sed -r -i 's/(Order allow\,deny)/\1\n  Allow all/' /etc/cups/cupsd.conf
     sudo usermod -a -G lpadmin pi
     sudo systemctl restart cups
+    
 
 At this point you should have the _cups_ and _cloudprintd_ services running.
 
@@ -68,12 +67,11 @@ printer to your setup. Your browser may complain about unsafe connections
 for _https_ links. Allow these connections. When it asks, use the _pi_
 user credentials.
 
-From the command line on the Pi, restart the proxy (to register the new
-printer) and establish Google Cloud Print authentication
+From the command line on the Pi,
+establish Google Cloud Print authentication
 with:
 
-    sudo systemctl restart cloudprintd
-    sudo cps-auth <Google account>
+    sudo cps-auth
 
 The output of the _cps_auth_ command will include a URL. Copy this URL to your browser,
 and use it to establish authentication. 
@@ -84,7 +82,9 @@ Now restart the cloudprint service to use this account.
 
 ### Step 3 - Print
 
-Your printer should be visible at https://www.google.com/cloudprint/#printers. Enjoy!
+Your printer should be visible at [https://www.google.com/cloudprint/#printers]. Enjoy!
+
+[http://davesteele.github.io/cloudprint-service/]: http://davesteele.github.io/cloudprint-service/
 
 #### Notes
 
@@ -92,8 +92,6 @@ Your printer should be visible at https://www.google.com/cloudprint/#printers. E
 512 MB of RAM.
 * Don't like insecure _https_? Then skip the _/etc/cups/cupsd.conf_ edits and
 manage printers from the Pi desktop.
-* If you are running a newer version of Raspbian than Jessie, package
-installation is just:
-
-    sudo apt-get install cloudprint-service
+* If you are running a newer version of Raspbian than Jessie, cloudprint-service
+is in the official repository. You don't need to modify the apt environment.
 
