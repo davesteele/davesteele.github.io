@@ -82,9 +82,7 @@ Now restart the cloudprint service to use this account.
 
 ### Step 3 - Print
 
-Your printer should be visible at [https://www.google.com/cloudprint/#printers]. Enjoy!
-
-[http://davesteele.github.io/cloudprint-service/]: http://davesteele.github.io/cloudprint-service/
+Your printer should be visible at [https://www.google.com/cloudprint/#printers](https://www.google.com/cloudprint/#printers). Enjoy!
 
 #### Notes
 
