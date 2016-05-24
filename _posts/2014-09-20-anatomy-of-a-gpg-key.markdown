@@ -408,7 +408,7 @@ The new wrinkle in this key is an expiration subpacket on the self signature, wh
 
 The [hokey][] utility, from the hopenpgp-tools package, can perform a 'lint' operation on your certificate:
 
-[hokey]: https://we.riseup.net/riseuplabs+paow/openpgp-best-practices#openpgp-key-checks
+[hokey]: https://help.riseup.net/en/security/message-security/openpgp/best-practices#openpgp-key-checks
 
     $ hkt export-pubkeys <fingerprint> | hokey lint
 
