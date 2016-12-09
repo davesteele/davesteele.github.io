@@ -44,9 +44,12 @@ Add the cloudprint repo to your apt environment.
     wget -q -O - https://davesteele.github.io/key-366150CE.pub.txt | sudo apt-key add -
     sudo apt-get update
 
- Install the software. This will likely involve more than 40 packages.
+Install the software. This will likely involve more than 40 packages.
 
     sudo apt-get -y install cloudprint-service
+
+(Edit: The repository is not working for everyone. If you end up with a version 11 of the cloudprint packages, update with the
+appropriate version from the [home page](http://davesteele.github.io/cloudprint-service/).
 
 Make the [CUPS] web page externally accessible.
 
