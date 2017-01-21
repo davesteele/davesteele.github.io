@@ -46,10 +46,8 @@ Add the cloudprint repo to your apt environment.
 
 Install the software. This will likely involve more than 40 packages.
 
+    sudo apt-get -y upgrade
     sudo apt-get -y install cloudprint-service
-
-(Edit: The repository is not working for everyone. If you end up with a version 11 of the cloudprint packages, update with the
-appropriate version from the [home page](http://davesteele.github.io/cloudprint-service/)).
 
 Make the [CUPS] web page externally accessible.
 
@@ -61,7 +59,7 @@ Make the [CUPS] web page externally accessible.
     sudo systemctl restart cups
     
 
-At this point you should have the _cups_ and _cloudprintd_ services running.
+At this point you should have the _cups_ service running.
 
 ### Step 2 - Configure
 
