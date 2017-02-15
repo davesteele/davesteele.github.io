@@ -39,7 +39,7 @@ Self signatures are automatically created whenever keys are manipulated in your 
 
 This prevalent use of self signatures means that the only time you need to worry about losing your position in the web of trust is when you add a UID or you transition to a new certificate. You are free to make any other changes without affecting your trust level.
 
-Hearkening back to the multiple meanings of 'key' - when you attend a key signing, you are collecting signatures against your key (Primary key) in order to provide web-of-trust verifyability for the keys (Primary and subkeys) that make up your key (certificate). Make sense?
+Hearkening back to the multiple meanings of 'key' - when you attend a key signing, you are collecting signatures against your key (Primary key) in order to provide web-of-trust verifiability for the keys (Primary and subkeys) that make up your key (certificate). Make sense?
 
 ### In general, nothing is ever deleted from a key certificate
  
@@ -102,7 +102,7 @@ Note that 'fixing' the key length of your primary would invalidate all of the we
 
 ### Certificate configuration information is stored in the Primary key self signature
 
-Key options, such as the preferred signing algorithm, are stored as a part of the self signature. many 'gpg --edit-key' operations may therefore result in a new self signature being appended to a key.
+Key options, such as the preferred signing algorithm, are stored as a part of the self signature. Many 'gpg --edit-key' operations may therefore result in a new self signature being appended to a key.
 
 ### Subkeys can be useful, but you don't have to deal with that before the keysigning
 
