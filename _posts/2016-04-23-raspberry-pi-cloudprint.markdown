@@ -17,7 +17,8 @@ Here's a simple procedure to turn a headless Raspberry Pi into a Google Cloud Pr
 your local printer(s) visible to Cloud Print. This is made possible using
 [armoo](https://github.com/armooo)'s cloudprint proxy software.
 
-Before you start, you'll need a Raspberry Pi 2 or newer with:
+Before you start, you'll need a Raspberry Pi 2 (Edit: maybe not - see Notes) or
+newer with:
 
 * Raspbian Jessie (Stretch is even better - see Notes)
 * A root partition that is bigger than the default 4G (16GB recommended)
@@ -87,7 +88,7 @@ Your printer should be visible at [https://www.google.com/cloudprint/#printers](
 #### Notes
 
 * I say "Raspberry Pi 2 or newer" because I've had problems running this with only 
-512 MB of RAM.
+512 MB of RAM. Many others have reported success with smaller Pis, such as the Zero.
 * Don't like insecure _https_? Then skip the _/etc/cups/cupsd.conf_ edits and
 manage printers from the Pi desktop.
 * If you are running a newer version of Raspbian than Jessie, cloudprint-service
