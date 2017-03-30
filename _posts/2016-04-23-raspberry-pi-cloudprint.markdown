@@ -53,8 +53,7 @@ Make the [CUPS] web page externally accessible.
 
 [CUPS]: https://www.cups.org/
 
-    sudo sed -i 's/Listen localhost:631/Listen \*:631/' /etc/cups/cupsd.conf
-    sudo sed -r -i 's/(Order allow\,deny)/\1\n  Allow all/' /etc/cups/cupsd.conf
+    sudo cupsctl --remote-admin
     sudo usermod -a -G lpadmin pi
     sudo systemctl restart cups
     
