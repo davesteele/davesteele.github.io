@@ -81,6 +81,14 @@ Now restart the cloudprint service to use this account.
 
     sudo systemctl restart cloudprintd
 
+Consider disabling CUPS remote administration, to improve security. Also, make sure you
+have changed the default SSH credentials.
+
+    sudo cupsctl --no-remote-admin
+    sudo systemctl restart cups
+    passwd
+
+
 ### Step 3 - Print
 
 Your printer should be visible at [https://www.google.com/cloudprint/#printers](https://www.google.com/cloudprint/#printers). Enjoy!
