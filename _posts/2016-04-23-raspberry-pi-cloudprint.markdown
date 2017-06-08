@@ -25,7 +25,7 @@ newer with:
 * Internet connectivity (possibly via [Comitup](https://davesteele.github.io/comitup/))
 * Access to a printer via the network or USB
 
-You'll also need another computer on the same network with an ssh client
+For the installation, you'll also want another computer on the same network with an ssh client
 (like [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/)) and
 a web browser logged in to your Google account. What you don't need is a
 desktop environment on the Pi, or a connected
