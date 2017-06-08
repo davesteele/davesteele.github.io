@@ -22,7 +22,7 @@ newer with:
 
 * Raspbian Jessie (Stretch is even better - see Notes)
 * A root partition that is bigger than the default 4G (16GB recommended)
-* Internet connectivity
+* Internet connectivity (possibly via [Comitup](https://davesteele.github.io/comitup/))
 * Access to a printer via the network or USB
 
 You'll also need another computer on the same network with an ssh client
