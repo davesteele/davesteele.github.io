@@ -2,7 +2,7 @@
 title: Dave Steele's Blog
 email: steele@debian.org
 description: "Linux Musings. Things to remember/rant about."
-baseurl: "~steele/blog"
+baseurl: "/~steele/blog"
 url: "https://people.debian.org/~steele/blog"
 comments: true
 
