@@ -3,10 +3,10 @@
   <channel>
     <title>Dave Steele&#39;s Blog</title>
     <description>Linux Musings. Things to remember/rant about.</description>
-    <link>https://people.debian.org/~steele/blog/blog/</link>
-    <atom:link href="https://people.debian.org/~steele/blog/blog/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 28 Jun 2017 20:58:29 -0400</pubDate>
-    <lastBuildDate>Wed, 28 Jun 2017 20:58:29 -0400</lastBuildDate>
+    <link>https://people.debian.org/~steele/blog~steele/blog/</link>
+    <atom:link href="https://people.debian.org/~steele/blog~steele/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Wed, 28 Jun 2017 21:01:06 -0400</pubDate>
+    <lastBuildDate>Wed, 28 Jun 2017 21:01:06 -0400</lastBuildDate>
     <generator>Jekyll v3.1.6</generator>
     
       <item>
@@ -114,8 +114,8 @@ is in the official repository. You don’t need to modify the apt environment.&l
 
 </description>
         <pubDate>Sat, 23 Apr 2016 08:34:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/</guid>
         
         
         <category>raspberrypi</category>
@@ -262,8 +262,8 @@ create/update the &lt;em&gt;.pot&lt;/em&gt; and &lt;em&gt;.po&lt;/em&gt; files i
 processed is enhanced to install compiled &lt;em&gt;.mo&lt;/em&gt; files in &lt;em&gt;/usr/share/locale/&lt;/em&gt;.&lt;/p&gt;
 </description>
         <pubDate>Fri, 11 Dec 2015 05:50:00 -0500</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/development/2015/12/11/add-i18n-to-setup-py/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/development/2015/12/11/add-i18n-to-setup-py/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/development/2015/12/11/add-i18n-to-setup-py/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/development/2015/12/11/add-i18n-to-setup-py/</guid>
         
         
         <category>development</category>
@@ -513,8 +513,8 @@ POSIX
 &lt;p&gt;If life is good, you’ll see your work in a different language.&lt;/p&gt;
 </description>
         <pubDate>Thu, 10 Dec 2015 16:29:00 -0500</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/debian/development/2015/12/10/i18n-build-flow/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/debian/development/2015/12/10/i18n-build-flow/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/debian/development/2015/12/10/i18n-build-flow/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/debian/development/2015/12/10/i18n-build-flow/</guid>
         
         
         <category>debian</category>
@@ -539,8 +539,8 @@ The slides are available &lt;a href=&quot;https://docs.google.com/presentation/d
 &lt;/ul&gt;
 </description>
         <pubDate>Sat, 03 Oct 2015 07:00:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/network/2015/10/03/network-talk/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/network/2015/10/03/network-talk/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/network/2015/10/03/network-talk/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/network/2015/10/03/network-talk/</guid>
         
         
         <category>network</category>
@@ -662,8 +662,8 @@ $ gpg --encrypt --recipient dsteele@gmail.com foo
 
 </description>
         <pubDate>Sat, 01 Aug 2015 17:44:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/gpg/2015/08/01/intermediate-gpg/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/gpg/2015/08/01/intermediate-gpg/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/gpg/2015/08/01/intermediate-gpg/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/gpg/2015/08/01/intermediate-gpg/</guid>
         
         
         <category>gpg</category>
@@ -749,8 +749,8 @@ first form will be eventually removed.&lt;/p&gt;
 
 </description>
         <pubDate>Sat, 02 May 2015 17:44:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/</guid>
         
         
         <category>development</category>
@@ -842,8 +842,8 @@ installation.&lt;/p&gt;
 using the CHAP password given to the script. The user name is not important.&lt;/p&gt;
 </description>
         <pubDate>Thu, 30 Oct 2014 18:17:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/administration/2014/10/30/the-best-vpn-service-is-a-vps/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/administration/2014/10/30/the-best-vpn-service-is-a-vps/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/administration/2014/10/30/the-best-vpn-service-is-a-vps/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/administration/2014/10/30/the-best-vpn-service-is-a-vps/</guid>
         
         
         <category>administration</category>
@@ -898,8 +898,8 @@ I’ll stick to scripts for now.&lt;/p&gt;
 
 </description>
         <pubDate>Sun, 26 Oct 2014 18:17:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/administration/2014/10/26/lightweight-server-configuring/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/administration/2014/10/26/lightweight-server-configuring/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/administration/2014/10/26/lightweight-server-configuring/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/administration/2014/10/26/lightweight-server-configuring/</guid>
         
         
         <category>administration</category>
@@ -916,8 +916,8 @@ make it to the top half of the chart.&lt;/p&gt;
 &lt;p&gt;Just, please, no crickets.&lt;/p&gt;
 </description>
         <pubDate>Sat, 04 Oct 2014 19:59:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/debian/2014/10/04/a-software-critique-taxonomy/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/debian/2014/10/04/a-software-critique-taxonomy/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/debian/2014/10/04/a-software-critique-taxonomy/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/debian/2014/10/04/a-software-critique-taxonomy/</guid>
         
         
         <category>debian</category>
@@ -1339,8 +1339,8 @@ sub  4096R/0A817A82  created: 2014-08-15  expires: 2019-08-14  usage: S
 
 </description>
         <pubDate>Sat, 20 Sep 2014 17:29:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/</guid>
         
         
         <category>gpg</category>
@@ -1362,8 +1362,8 @@ sub  4096R/0A817A82  created: 2014-08-15  expires: 2019-08-14  usage: S
 &lt;p&gt; &lt;/p&gt;
 </description>
         <pubDate>Thu, 18 Sep 2014 19:59:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/debian/2014/09/18/notes-for-a-debconf-newbie/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/debian/2014/09/18/notes-for-a-debconf-newbie/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/debian/2014/09/18/notes-for-a-debconf-newbie/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/debian/2014/09/18/notes-for-a-debconf-newbie/</guid>
         
         
         <category>debian</category>
@@ -1427,8 +1427,8 @@ sdhci
 
 </description>
         <pubDate>Sun, 14 Sep 2014 17:29:00 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/debian/bugs/2014/09/14/installing_debian_on_an_N2830/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/debian/bugs/2014/09/14/installing_debian_on_an_N2830/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/debian/bugs/2014/09/14/installing_debian_on_an_N2830/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/debian/bugs/2014/09/14/installing_debian_on_an_N2830/</guid>
         
         
         <category>debian</category>
@@ -1500,8 +1500,8 @@ sdhci
 &lt;p&gt;So, why do you avoid documentation?&lt;/p&gt;
 </description>
         <pubDate>Sun, 14 Sep 2014 04:05:12 -0400</pubDate>
-        <link>https://people.debian.org/~steele/blog/blog/debian/linux/2014/09/14/is-documentation-considered-harmful/</link>
-        <guid isPermaLink="true">https://people.debian.org/~steele/blog/blog/debian/linux/2014/09/14/is-documentation-considered-harmful/</guid>
+        <link>https://people.debian.org/~steele/blog~steele/blog/debian/linux/2014/09/14/is-documentation-considered-harmful/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog~steele/blog/debian/linux/2014/09/14/is-documentation-considered-harmful/</guid>
         
         
         <category>debian</category>
