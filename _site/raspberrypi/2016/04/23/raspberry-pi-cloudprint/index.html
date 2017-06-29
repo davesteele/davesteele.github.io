@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>A Raspberry Pi Cloud Print Proxy</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Linux Musings. Things to remember/rant about.">
+    <link rel="canonical" href="https://people.debian.org/~steele/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="alternate" type="application/rss+xml" title="Linux Musings"
+     href="/feed.xml">
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5STC4K7');</script>
+    <!-- End Google Tag Manager -->
+    
+</head>
+
+
+    <body>
+
+    <header class="site-header">
+
+  <div class="wrap">
+
+    <a class="site-title" href="/">Dave Steele's Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+
+  <header class="post-header">
+    <h1>A Raspberry Pi Cloud Print Proxy</h1>
+    <p class="meta">Apr 23, 2016</p>
+  </header>
+
+  <article class="post-content">
+  <h2 id="making-a-raspberry-pi-google-cloud-print-proxy">Making a Raspberry Pi Google Cloud Print Proxy</h2>
+
+<p>Google <a href="https://www.google.com/cloudprint/learn/">Cloud Print</a> has become
+a requirement for me - no more dealing
+with drivers, and I can print from anywhere using my phone. But, not all
+printers support the service (or support it adequately - I’m looking at you,
+Brother).</p>
+
+<p>Here’s a simple procedure to turn a headless Raspberry Pi into a Google Cloud Print proxy, making
+your local printer(s) visible to Cloud Print. This is made possible using
+<a href="https://github.com/armooo">armoo</a>’s cloudprint proxy software.</p>
+
+<p>Before you start, you’ll need a Raspberry Pi 2 (Edit: maybe not - see Notes) or
+newer with:</p>
+
+<ul>
+  <li>Raspbian Jessie (Stretch is even better - see Notes)</li>
+  <li>A root partition that is bigger than the default 4G (16GB recommended)</li>
+  <li>Internet connectivity (possibly via <a href="https://davesteele.github.io/comitup/">Comitup</a>)</li>
+  <li>Access to a printer via the network or USB</li>
+</ul>
+
+<p>For the installation, you’ll also want another computer on the same network with an ssh client
+(like <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a>) and
+a web browser logged in to your Google account. What you don’t need is a
+desktop environment on the Pi, or a connected
+keyboard/monitor/mouse. All interaction can be achieved via ssh and
+another browser connected to the network.</p>
+
+<h3 id="step-1---install">Step 1 - Install</h3>
+
+<p>Establish an ssh session with the Pi, and run the following commands
+to install the required software from the <a href="http://davesteele.github.io/cloudprint-service/">cloudprint repository</a>.</p>
+
+<p>Add the cloudprint repo to your apt environment.</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>echo "deb http://davesteele.github.io/cloudprint-service/repo cloudprint-jessie main" | sudo tee /etc/apt/sources.list.d/cloudprint.list
+wget -q -O - https://davesteele.github.io/key-366150CE.pub.txt | sudo apt-key add -
+sudo apt-get update
+</code></pre></div>
+
+<p>Install the software. This will likely involve more than 40 packages.</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>sudo apt-get -y upgrade
+sudo apt-get -y install cloudprint-service
+</code></pre></div>
+
+<p>Make the <a href="https://www.cups.org/">CUPS</a> web page externally accessible.</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>sudo cupsctl --remote-admin
+sudo usermod -a -G lpadmin pi
+sudo systemctl restart cups
+</code></pre></div>
+
+<p>At this point you should have the <em>cups</em> service running.</p>
+
+<h3 id="step-2---configure">Step 2 - Configure</h3>
+
+<p>Use the CUPS web interface at <em>http://&lt;piaddr&gt;:631/</em> to add a
+printer to your setup. Your browser may complain about unsafe connections
+for <em>https</em> links. Allow these connections. When it asks, use the <em>pi</em>
+user credentials.</p>
+
+<p>From the command line on the Pi,
+establish Google Cloud Print authentication
+with:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>sudo cps-auth
+</code></pre></div>
+
+<p>The output of the <em>cps_auth</em> command will include a URL. Copy this URL to your browser,
+and use it to establish authentication.</p>
+
+<p>Now restart the cloudprint service to use this account.</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>sudo systemctl restart cloudprintd
+</code></pre></div>
+
+<p>Consider disabling CUPS remote administration, to improve security. Also, make sure you
+have changed the default SSH credentials.</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>sudo cupsctl --no-remote-admin
+sudo systemctl restart cups
+passwd
+</code></pre></div>
+
+<h3 id="step-3---print">Step 3 - Print</h3>
+
+<p>Your printer should be visible at <a href="https://www.google.com/cloudprint/#printers">https://www.google.com/cloudprint/#printers</a>. Enjoy!</p>
+
+<h4 id="notes">Notes</h4>
+
+<ul>
+  <li>I say “Raspberry Pi 2 or newer” because I’ve had problems running this with only 
+512 MB of RAM. Many others have reported success with smaller Pis, such as the Zero.</li>
+  <li>Don’t like insecure <em>https</em>? Then skip the <em>/etc/cups/cupsd.conf</em> edits and
+manage printers from the Pi desktop.</li>
+  <li>If you are running a newer version of Raspbian than Jessie, cloudprint-service
+is in the official repository. You don’t need to modify the apt environment.</li>
+</ul>
+
+
+  </article>
+
+</div>
+
+
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'davesteelesblog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">
+
+    <div class="footer-col-1 column">
+      <ul>
+        <li>Dave Steele's Blog</li>
+        <li><a href="mailto:steele@debian.org">steele@debian.org</a></li>
+        <li><a href="/key-366150CE.pub.txt">AE0D BF5A 92A5 ADE4 9481<br>BA6F 8A31 71EF 3661 50CE</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col-2 column">
+      <ul>
+        <li>
+        <a href="https://people.debian.org/~steele/blog/feed.xml">
+        <span>
+        <img class="crispicon" src="/icons/rss.png">
+        <span class="username">RSS</span>
+        </span>
+        </a>
+        </li>
+        
+        
+        
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Linux Musings. Things to remember/rant about.</p>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    </body>
+</html>

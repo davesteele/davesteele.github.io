@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Anatomy of a GPG Key</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Linux Musings. Things to remember/rant about.">
+    <link rel="canonical" href="https://people.debian.org/~steele/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="alternate" type="application/rss+xml" title="Linux Musings"
+     href="/feed.xml">
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5STC4K7');</script>
+    <!-- End Google Tag Manager -->
+    
+</head>
+
+
+    <body>
+
+    <header class="site-header">
+
+  <div class="wrap">
+
+    <a class="site-title" href="/">Dave Steele's Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+
+  <header class="post-header">
+    <h1>Anatomy of a GPG Key</h1>
+    <p class="meta">Sep 20, 2014</p>
+  </header>
+
+  <article class="post-content">
+  <p>I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool ‘gpg’. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were tangential to the particular procedure, and therefore not covered where I needed it to be.</p>
+
+<p>For me, the key to understanding how to work with gpg was to understand the packet structure of the underlying OpenPGP Message Format (<a href="http://tools.ietf.org/html/rfc4880">RFC4880</a>), which defines how gpg messages, signatures, and key material are stored. The goal of this post is to grease the skids for the next guy, by tying the key storage format to the RFC definition, and to the associated gpg commands and parameters.</p>
+
+<h3 id="tldr">TL;DR</h3>
+
+<p>Here are some takeaways I wish I had going into this:</p>
+
+<ul>
+  <li>Most key parameters are stored in the self signature. That means they can be changed at will by the key owner without affecting the status of external key signatures.</li>
+  <li>Subkeys need only be self-signed (which is automatic). Trust from external signatures is provided transitively.</li>
+  <li>(Edit - 19 Apr 2015) gpg <a href="http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM">automatically uses the newest subkey</a> to sign/encrypt.</li>
+</ul>
+
+<h2 id="some-terms">Some Terms</h2>
+<p>It’s best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let’s be clear on a couple of terms:</p>
+
+<ul>
+  <li>Primary key vs. subkey - A PGP key certificate may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The primary key is the top level key. It is often referred to elsewhere as the master key.</li>
+  <li>Public key - This post is working with the published version of the key certificate. Therefore, only public keys are described (the ones that encrypt and verify signatures). Your local version of your key also includes the associated private keys (for decryption and signature creation), to define the key pair.</li>
+  <li>Key certificate - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word ‘key’. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP ‘certificate’ that defines a suite of information associated with a key or set of keys. I will use the term “key/public key” and “key certificate” to distinguish between the possible interpretations. Key pairs and private keys will not come up here. We will be focusing on the key certificate.</li>
+  <li>Key ID - A hexadecimal string that identifies a key (usually the primary key).</li>
+  <li>UID, or User ID - The name and email of the user is stored in one or more UID entries, stored under the Primary key.</li>
+  <li>Certification vs. signing - ‘Signing’ is an action against arbitrary data. ‘Certification’ is the signing of another key. Ironically, the act of certifying a key is universally called “key signing”. Just embrace the contradiction.</li>
+  <li>Key packet - ‘Packet’ is the term used by RFC4880 to identify a component of the message/certificate format. Messages and keys certificates are made up of packets and subpackets of various types.</li>
+  <li>Trust, Validity, and the Web of Trust - gpg uses a model of ‘trust’ of users (defined locally-only using the ‘trust’ edit command) and reported ‘validity’
+of keys (defined by key signatures/certificates). The combination creates a “Web of Trust”, starting with locally-defined trust statements about users, and passing through multiple levels of key-signature-defined validity links to other keys. Gpg uses the web of trust to determine if a key is acceptable for use without warning the user. There is a writeup in the <a href="https://www.gnupg.org/gph/en/manual/x334.html#AEN384">GNU Privacy Handbook</a> that covers the concepts well enough if you have the terms straight. Documentation often uses the word ‘trust’ for both ‘trust’ and ‘validity’. I mention all of this only to note that this document is concerned with ‘validity’.</li>
+</ul>
+
+<h2 id="my-key">My Key</h2>
+
+<p>Following is an annotated and edited dump of my key certificate, originally generated with:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>gpg -a --export "David Steele" | gpg --list-packets --verbose
+</code></pre></div>
+
+<p>where “David Steele” matches a UID for my key. Substitute your name or primary key id to see your key certificate. Add the ‘--debug 0x02’ option to the second gpg invocation to see the entire contents, including the binary key data (thanks <a href="http://superuser.com/questions/696941/human-readable-dump-of-gpg-public-key">superuser.com</a>).</p>
+
+<p>Note that there are <a href="#OtherTools">other tools</a> which provide more information or features for this task. I use gpg as the least common denominator tool.</p>
+
+<p>This is a pretty standard published key certificate, which is to say that it contains a primary certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the primary, to avoid <a href="http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key">problems</a>). I also have an extra public signing subkey with an expiration date, for a couple of <a href="https://wiki.debian.org/Subkeys#Why.3F">reasons</a>.</p>
+
+<p>I’ve linked aspects of the key dump to explanation paragraphs below.</p>
+
+<hr />
+
+<blockquote>
+  <p># <a href="#PrimaryKey">Primary key</a><br />
+:public key <a href="#PacketType">packet</a>:<br />
+    <a href="#PacketVer">version 4</a>, <a href="#KeyAlg">algo 1</a>, created <a href="#DatesExpir">1281838967</a>, expires 0<br />
+    pkey[0]: [4096 bits]<br />
+    pkey[1]: [17 bits]<br />
+    <a href="#KeyId">keyid: 8A3171EF366150CE</a></p>
+</blockquote>
+
+<blockquote>
+  <p># <a href="#UID1">User ID #1</a><br />
+:user ID packet: “David Steele &lt;daves@users.sourceforge.net&gt;”</p>
+</blockquote>
+
+<blockquote>
+  <p># <a href="#EndorsingSigs">Endorsing Signatures</a><br />
+# <a href="#SelfSig">Self Signature</a><br />
+:signature packet: algo 1, keyid 8A3171EF366150CE<br />
+    version 4, created 1281838967, md5len 0, <a href="#SigClass">sigclass 0x13</a><br />
+    <a href="#DigestAlgo">digest algo 8</a>, begin of digest f9 34<br />
+    <a href="#SigSubpacket">hashed subpkt</a> 2 len 4 (sig created 2010-08-15)<br />
+    hashed subpkt 27 len 1 (<a href="#KeyFlags">key flags</a>: 03)<br />
+    hashed subpkt 11 len 4 (<a href="#PrefSymAlgos">pref-sym-algos</a>: 9 8 7 3)<br />
+    hashed subpkt 21 len 4 (<a href="#PrefHashAlgos">pref-hash-algos</a>: 10 9 8 11)<br />
+    hashed subpkt 22 len 4 (pref-zip-algos: 2 3 1 0)<br />
+    hashed subpkt 30 len 1 (<a href="#Features">features</a>: 01)<br />
+    hashed subpkt 23 len 1 (<a href="#KeyServPrefs">key server preferences</a>: 80)<br />
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)<br />
+    data: [4092 bits]<br />
+# <a href="#ExternalSigs">External Signatures</a><br />
+:signature packet: algo 17, keyid F7EBEE8EB7982329<br />
+    version 4, created 1284226833, md5len 0, sigclass 0x10<br />
+    digest algo 2, begin of digest fe c2<br />
+    hashed subpkt 2 len 4 (sig created 2010-09-11)<br />
+    subpkt 16 len 8 (issuer key ID F7EBEE8EB7982329)<br />
+    data: [160 bits]<br />
+    data: [157 bits]<br />
+:signature packet: algo 17, keyid DABDF1E4C88B0C9C<br />
+    version 4, created 1349019663, md5len 0, sigclass 0x13<br />
+    digest algo 2, begin of digest 1b fd<br />
+    hashed subpkt 2 len 4 (sig created 2012-09-30)<br />
+    subpkt 16 len 8 (issuer key ID DABDF1E4C88B0C9C)<br />
+    data: [160 bits]<br />
+    data: [158 bits]</p>
+</blockquote>
+
+<blockquote>
+  <p># User ID #2<br />
+:user ID packet: “David Steele &lt;dsteele@gmail.com&gt;”</p>
+</blockquote>
+
+<blockquote>
+  <p>:signature packet: algo 1, keyid 8A3171EF366150CE<br />
+    version 4, created 1322364912, md5len 0, sigclass 0x13<br />
+    digest algo 2, begin of digest e6 05<br />
+    hashed subpkt 2 len 4 (sig created 2011-11-27)<br />
+    hashed subpkt 27 len 1 (key flags: 03)<br />
+    hashed subpkt 11 len 5 (pref-sym-algos: 9 8 7 3 2)<br />
+    hashed subpkt 21 len 5 (pref-hash-algos: 8 2 9 10 11)<br />
+    hashed subpkt 22 len 3 (pref-zip-algos: 2 3 1)<br />
+    hashed subpkt 30 len 1 (features: 01)<br />
+    hashed subpkt 23 len 1 (key server preferences: 80)<br />
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)<br />
+    data: [4096 bits]<br />
+:signature packet: algo 17, keyid F7EBEE8EB7982329<br />
+    version 4, created 1322413422, md5len 0, sigclass 0x10<br />
+    digest algo 2, begin of digest b4 2e<br />
+    hashed subpkt 2 len 4 (sig created 2011-11-27)<br />
+    subpkt 16 len 8 (issuer key ID F7EBEE8EB7982329)<br />
+    data: [157 bits]<br />
+    data: [159 bits]</p>
+</blockquote>
+
+<blockquote>
+  <p># <a href="#EncryptSubkey">Encryption subkey</a><br />
+:public sub key packet:<br />
+    version 4, algo 1, created 1281839112, expires 0<br />
+    pkey[0]: [4096 bits]<br />
+    pkey[1]: [17 bits]<br />
+    keyid: 2DC87C4C0D929394<br />
+:signature packet: algo 1, keyid 8A3171EF366150CE<br />
+    version 4, created 1281839112, md5len 0, sigclass 0x18<br />
+    digest algo 8, begin of digest 87 3b<br />
+    hashed subpkt 2 len 4 (sig created 2010-08-15)<br />
+    hashed subpkt 27 len 1 (key flags: 0C)<br />
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)<br />
+    data: [4096 bits]</p>
+</blockquote>
+
+<blockquote>
+  <p># <a href="#SigningSubkey">Signing subkey</a><br />
+:public sub key packet:<br />
+    version 4, algo 1, created 1408105689, expires 0<br />
+    pkey[0]: [4096 bits]<br />
+    pkey[1]: [17 bits]<br />
+    keyid: 627EBB290A817A82<br />
+:signature packet: algo 1, keyid 8A3171EF366150CE<br />
+    version 4, created 1408105689, md5len 0, sigclass 0x18<br />
+    digest algo 2, begin of digest 62 1d<br />
+    hashed subpkt 2 len 4 (sig created 2014-08-15)<br />
+    hashed subpkt 27 len 1 (key flags: 02)<br />
+    hashed subpkt 9 len 4 (key expires after 5y0d0h0m)<br />
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)<br />
+    subpkt 32 len 540 (signature: v4, class 0x19, algo 1, digest algo 2)<br />
+    data: [4094 bits]</p>
+</blockquote>
+
+<hr />
+
+<h2 id="a-nameprimarykeyaprimary-key"><a name="PrimaryKey"></a>Primary Key</h2>
+
+<p>The first packet in a published OpenPGP/gpg key certificate is the primary signing/certification public key. The overall key certificate is referenced by the Key ID of this key.</p>
+
+<h3 id="a-namepackettypeapacket-type"><a name="PacketType"></a>Packet Type</h3>
+
+<p>The ‘types’ of packets in an OpenPGP key certificate or message are defined in Section 5 of the RFC (<a href="http://tools.ietf.org/html/rfc4880#section-5">RFC4880-5</a>). The primary signing public key uses a packet with a ‘tag’ value of 6 (<a href="http://tools.ietf.org/html/rfc4880#section-5.5.1.1">RFC4880-5.5.1.1</a>). The tag values are not shown in the gpg key dump - just the resulting type.</p>
+
+<h3 id="a-namepacketverapacket-version"><a name="PacketVer"></a>Packet Version</h3>
+
+<p>The RFC defines both ‘version 3’ and ‘version 4’ packet types. For key packets, a modern gpg will only create version 4 packets (<a href="http://tools.ietf.org/html/rfc4880#section-5.5.2">RFC4880-5.5.2</a>). You should avoid working with version 3 keys - there are known weaknesses with the format.</p>
+
+<h3 id="a-namekeyalgakey-algorithm"><a name="KeyAlg"></a>Key Algorithm</h3>
+
+<p>The “algo” parameter in the dump identifies the encryption algorithm associated with the key packet. The list of required and possible algorithms is listed in the  “Constants” section of the RFC (<a href="http://tools.ietf.org/html/rfc4880#section-9.1">RFC4880-9.1</a>).</p>
+
+<p>That section states that ‘DSA’ (for signing) and ‘Elgamal’ (for encryption) can be expected to be the most available across implementations and versions. My key uses RSA (encrypt or sign), which is the current default in gpg:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ gpg --gen-key
+gpg (GnuPG) 1.4.18; Copyright (C) 2014 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+Your selection? 1
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (2048) 4096
+...
+</code></pre></div>
+
+<p>The information stored for the key (pkey[0] and pkey[1] in this case) is dependent on the algorithm.</p>
+
+<p>The length of the key is important. Mine is 4096 bits, based on the current <a href="http://keyring.debian.org/creating-key.html">recommendation</a> from Debian (as an exercise, you can verify that the key listed in that document is RSA).</p>
+
+<h3 id="a-namedatesexpiradates-and-expiration"><a name="DatesExpir"></a>Dates and Expiration</h3>
+
+<p>The dates in the key certificate dump are <a href="http://en.wikipedia.org/wiki/Unix_time">Unix epochs</a>. Convert to human-readable with:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ date -d @1281838967
+Sat Aug 14 22:22:47 EDT 2010
+</code></pre></div>
+
+<p>The ‘expires’ value of ‘0’ means that the key itself has no expiration date. Note that we will find out shortly that there are multiple ways to express key expiration. This mechanism is part of the key definition - changing it would change the Key ID for the Primary key, which would in turn invalidate all signatures for the key certificate.</p>
+
+<p>Perhaps for that reason, gpg does not use this field to define the expiration date for a generated key. It is expressed in the key self-signature, as shown later.</p>
+
+<p>There has been a fair amount of mulling about the right strategy for key expiration. My sense is that the consensus is that opinion on expiring Primary keys is mixed, encryption subkeys should have no expiration, and signing subkeys should.</p>
+
+<h3 id="a-namekeyidakey-id"><a name="KeyId"></a>Key ID</h3>
+
+<p>The RFC defines a 160-bit ‘fingerprint’ for a key, which is typically expressed as a hexadecimal string, divided into 10 4-character groups (<a href="http://tools.ietf.org/html/rfc4880#section-12.2">rfc4880-12.2</a>). When validating keys for key signing, the fingerprint is used.</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ gpg --fingerprint "David Steele"
+pub   4096R/366150CE 2010-08-15
+      Key fingerprint = AE0D BF5A 92A5 ADE4 9481  BA6F 8A31 71EF 3661 50CE
+uid                  David Steele &lt;dsteele@gmail.com&gt;
+uid                  David Steele &lt;daves@users.sourceforge.net&gt;
+sub   4096R/0D929394 2010-08-15
+sub   4096R/0A817A82 2014-08-15 [expires: 2019-08-14]
+</code></pre></div>
+
+<p>The key certificate dump is expressing this fingerprint as a ‘key id’ (or ‘long key id’), taking the last 16 characters of that fingerprint (again, <a href="http://tools.ietf.org/html/rfc4880#section-12.2">rfc4880-12.2</a>).</p>
+
+<p>The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id (‘short key id’), shown on the ‘pub’ line for the fingerprint call above. It is using the definition of key id from section 3.3 (<a href="http://tools.ietf.org/html/rfc4880#section-3.3">rfc4880-3.3</a>).</p>
+
+<p>Going one step further down the rabbit hole, in some contexts this value needs to have “0x” prepended (‘0x366150CE’). I’ve run across this in a key server search function.</p>
+
+<p>The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and many consider this a <a href="https://www.debian-administration.org/users/dkg/weblog/105">terrible idea</a>.</p>
+
+<p>The Key ID of the Primary public key (‘366150CE’ in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.</p>
+
+<p>The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is changed, but is unaffected by any changes in any other packets.</p>
+
+<h2 id="a-nameuid1auser-id"><a name="UID1"></a>User ID</h2>
+
+<p>The user ID packet defines a name/email address that is associated with the key certificate (<a href="http://tools.ietf.org/html/rfc4880#section-5.11">RFC4880-5.11</a>). The gpg program will store it in <a href="http://tools.ietf.org/html/rfc2822#section-3.4">RFC2822</a> format (“David Steele &lt;dsteele@gmail.com&gt;”) based on the name and email you provide it when you generated the key.</p>
+
+<p>The key certificate can have more than one user id. For instance, if you want to use the key certificate with more than one email account, multiple user ids would be needed.</p>
+
+<h3 id="a-nameendorsingsigsendorsing-signatures"><a name="EndorsingSigs"></a>Endorsing Signatures</h3>
+
+<p>A user id packet is followed by one or more ‘signature packets’.</p>
+
+<p>This is a key point - the key signature covers the contents of the primary key packet and the last-encountered user id packet. So, the signature is a certification by the signer that the user identified in the user id is who he says he is, and that he claims ownership of the key.</p>
+
+<p>A key signature only covers one user id. Separate signatures are needed if certification is desired for multiple user ids.</p>
+
+<p>Signatures are identified by the ‘signature type’, shown as ‘sigclass’ in the packet certificate dump. Types/classes 0x10 through 0x13 are key signatures (<a href="http://tools.ietf.org/html/rfc4880#section-5.2.1">RFC4880-5.2.1</a>).</p>
+
+<p>Key signatures can be created using the ‘sign-key’ command in the key edit mode.</p>
+
+<h3 id="a-nameselfsigself-signature"><a name="SelfSig"></a>Self Signature</h3>
+
+<p>The ‘self signature’ is a key signature generated by the primary key being signed. It serves as verification that the user id is valid for that key. For version 4 packets, it also provides a number of parameters to be associated with the key/user id pair (<a href="http://tools.ietf.org/html/rfc4880#section-5.2">RFC4880-5.2</a>).</p>
+
+<p>Self signatures are generated automatically by gpg, as keys are generated and as parameters are changed.</p>
+
+<h3 id="a-namesigclasssignature-class"><a name="SigClass"></a>Signature Class</h3>
+
+<p>Again, the key signature type, or ‘sigclass’, identifies the signature as a key signature. It also claims to provide a level of assurance of that certification, from “does not make any particular assertion” to “substantial verification of the claim of identity” (<a href="http://tools.ietf.org/html/rfc4880#section-5.2">RFC4880-5.2</a>).</p>
+
+<p>It appears that the levels are largely ignored for key validation purposes. The Debian key signing guidelines recommends using ‘<a href="https://www.debian.org/events/keysigning">casual</a>’, which I believe maps to 0x12. However, the RFC states:</p>
+
+<blockquote>
+  <p>Most OpenPGP implementations make their “key signatures” as 0x10
+certifications.  Some implementations can issue 0x11-0x13
+certifications, but few differentiate between the types.</p>
+</blockquote>
+
+<p>I have both 0x10 and 0x13 key signatures in my key certificate.</p>
+
+<h3 id="a-namedigestalgodigest-algorithm"><a name="DigestAlgo"></a>Digest Algorithm</h3>
+
+<p>A signature is actually a cryptographic operation over a hash of the entity being signed. The list of digest
+algorithms (‘hash’ and ‘digest’ are interchangeable) are in <a href="http://tools.ietf.org/html/rfc4880#section-9.4">RFC4880-9.4</a>.</p>
+
+<p>Note that MD5 (digest algo 1) is <a href="https://www.gnupg.org/faq/weak-digest-algos.html#sec-3">broken</a>. SHA-1 (digest algo 2) is the standard, but is showing signs of age. You can set the signature
+preferences using the <a href="https://www.gnupg.org/documentation/manuals/gnupg/OpenPGP-Options.html#index-personal_002ddigest_002dpreferences-280">personal-digest-preferences</a> and <a href="https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-cert_002ddigest_002dalgo-324">cert-digest-algo</a> parameters in ~/.gnupg/gpg.conf.
+<a href="http://keyring.debian.org/creating-key.html">Debian recommends</a> that you set this to SHA256.</p>
+
+<h3 id="a-namesigsubpacketendorsing-signature-subpackets"><a name="SigSubpacket"></a>“Endorsing Signature” Subpackets</h3>
+
+<p>Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used (<a href="http://tools.ietf.org/html/rfc4880#section-5.2">RFC4880-5.2</a>). That means such information is validated by the primary key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in <a href="http://tools.ietf.org/html/rfc4880#section-5.2.3.1">RFC4880-5.2.3.1</a></p>
+
+<h4 id="a-namekeyflagskey-flag-subpacket"><a name="KeyFlags"></a>Key Flag Subpacket</h4>
+
+<p>I’ve said a couple of times now that the primary key is used for signing, and there is a separate encryption subkey. Well, it is the ‘keyflags’ field that defines these roles for the keys (<a href="http://tools.ietf.org/html/rfc4880#section-5.2.3.21">RFC4880-5.2.3.21</a>).</p>
+
+<p>The flag data is reflected in the output of gpg when you invoke --edit-key:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ gpg --edit-key "David Steele"
+gpg (GnuPG) 1.4.18; Copyright (C) 2014 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Secret key is available.
+
+pub  4096R/366150CE  created: 2010-08-15  expires: never       usage: SC  
+                     trust: ultimate      validity: ultimate
+sub  4096R/0D929394  created: 2010-08-15  expires: never       usage: E   
+sub  4096R/0A817A82  created: 2014-08-15  expires: 2019-08-14  usage: S   
+[ultimate] (1). David Steele &lt;dsteele@gmail.com&gt;
+[ultimate] (2)  David Steele &lt;daves@users.sourceforge.net&gt;
+</code></pre></div>
+
+<p>The ‘usage’ characters map to the key flags as follows:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Flag</th>
+      <th style="text-align: center">gpg character</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">0x01</td>
+      <td style="text-align: center">“C”</td>
+      <td style="text-align: left">Key Certification</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">0x02</td>
+      <td style="text-align: center">“S”</td>
+      <td style="text-align: left">Sign Data</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">0x04</td>
+      <td style="text-align: center">“E”</td>
+      <td style="text-align: left">Encrypt Communications</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">0x08</td>
+      <td style="text-align: center">“E”</td>
+      <td style="text-align: left">Encrypt Storage</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">0x10</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: left">Split key</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">0x20</td>
+      <td style="text-align: center">“A”</td>
+      <td style="text-align: left">Authentication</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">0x80</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: left">Held by more than one person</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>If you look in my key certificate dump, you’ll see that my primary key’s key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.</p>
+
+<p>There is not much to work with on this flag, under the normal gpg mode. I don’t believe that it is editable in gpg, and the values are created automatically on key creation. Also, there is no option on subkeys to create a key which can both sign and encrypt.</p>
+
+<p>It is possible to set these flags on creation, if you use the gpg “--expert” option along with “--gen-key”. Additional key algorithms are shown on the edit “addkey” command which permit toggling some key flags.</p>
+
+<h4 id="a-nameprefsymalgospreferred-symmetric-algorithms"><a name="PrefSymAlgos"></a>Preferred Symmetric Algorithms</h4>
+
+<p>First, be aware that when you use public key algorithms, you are actually managing a symmetric encryption key, which is used to do the actual work of encrypting your message. The why of that is out of scope here.</p>
+
+<p>This parameter is listing the algorithms a sender should use to send you encrypted material. This default list to use (as well as the list for hash and compression/zip algorithms) can be set using the <a href="https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-default_002dpreference_002dlist-360">default-preference-list</a> parameter on the command line or ~/.gnupg/gpg.conf.</p>
+
+<p>The defined list of algorithms is at <a href="http://tools.ietf.org/html/rfc4880#section-9.2">RFC4880-9.2</a>. You will probably not need to work with this list.</p>
+
+<h4 id="a-nameprefhashalgospreferred-hash-algorithms"><a name="PrefHashAlgos"></a>Preferred Hash Algorithms</h4>
+
+<p>The hash algorithms available are defined at <a href="http://tools.ietf.org/html/rfc4880#section-9.4">RFC4880-9.4</a>. These are used for signatures. MD5 should definitely not be in the list. For compatibility, SHA-1 should be in the list somewhere. Note that this is not current <a href="http://keyring.debian.org/creating-key.html">Debian practice</a> (see the section on gpg.conf).</p>
+
+<h4 id="a-namefeatureskey-features"><a name="Features"></a>Key Features</h4>
+
+<p>“Features” doesn’t yet serve much purpose (<a href="http://tools.ietf.org/html/rfc4880#section-5.2.3.24">RFC4880-5.2.3.24</a>).</p>
+
+<h4 id="a-namekeyservprefskey-server-preferences"><a name="KeyServPrefs"></a>Key Server Preferences</h4>
+
+<p>The key server preferences subpacket is also a bit light (<a href="http://tools.ietf.org/html/rfc4880#section-5.2.3.17">RFC4880-5.2.3.17</a>)</p>
+
+<h3 id="a-nameexternalsigsexternal-key-signatures"><a name="ExternalSigs"></a>External Key Signatures</h3>
+
+<p>Following the self signature are the externally generated key signatures. You get these when you import a copy of your key that has been signed remotely and exported by a person who is certifying your key certificate/user id. Note that I show two signatures from the same user/key, (‘F7EBEE8EB7982329’), certifying my two user id’s independently.</p>
+
+<h2 id="a-nameencryptsubkeyencryption-subkey"><a name="EncryptSubkey"></a>Encryption Subkey</h2>
+
+<p>You can see that this was created at the same time as the primary key. As mentioned previously, this is created automatically with --gen-key.</p>
+
+<p>The parameters have already been discussed.</p>
+
+<h2 id="a-namesigningsubkeysigning-subkey"><a name="SigningSubkey"></a>Signing Subkey</h2>
+
+<p>This signing subkey was created in 2014. It, and the encryption subkey, are only self-signed. That alone allows them to inherit the trust from the top level primary keys defined by the other primary key signatures.</p>
+
+<p>The new wrinkle in this key is an expiration subpacket on the self signature, which puts a time limit on the certification (<a href="http://tools.ietf.org/html/rfc4880#section-5.2.3.6">RFC4880-5.2.3.6</a>).</p>
+
+<p>(Added - 19 Apr 2015) Note that gpg will automatically use the <a href="http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM">most recent signing/encryption subkey</a> when the master is referenced. To force a specific key/subkey, add an
+<a href="http://www.enricozini.org/2006/tips/gpg-select-subkey/">exclamation mark</a> after the Key ID.</p>
+
+<h2 id="a-nameothertoolsother-tools"><a name="OtherTools"></a>Other Tools</h2>
+
+<p>The <a href="https://help.riseup.net/en/security/message-security/openpgp/best-practices#openpgp-key-checks">hokey</a> utility, from the hopenpgp-tools package, can perform a ‘lint’ operation on your certificate:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ hkt export-pubkeys &lt;fingerprint&gt; | hokey lint
+</code></pre></div>
+
+<p>The pgpdump program provides more information in the dump, and also has a <a href="http://www.pgpdump.net/">web interface</a>.</p>
+
+<hr />
+
+<p>Should you have made it this far, I hope you have found this useful. Please let me know if you find any issues with the explanations.</p>
+
+
+  </article>
+
+</div>
+
+
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'davesteelesblog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">
+
+    <div class="footer-col-1 column">
+      <ul>
+        <li>Dave Steele's Blog</li>
+        <li><a href="mailto:steele@debian.org">steele@debian.org</a></li>
+        <li><a href="/key-366150CE.pub.txt">AE0D BF5A 92A5 ADE4 9481<br>BA6F 8A31 71EF 3661 50CE</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col-2 column">
+      <ul>
+        <li>
+        <a href="https://people.debian.org/~steele/blog/feed.xml">
+        <span>
+        <img class="crispicon" src="/icons/rss.png">
+        <span class="username">RSS</span>
+        </span>
+        </a>
+        </li>
+        
+        
+        
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Linux Musings. Things to remember/rant about.</p>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    </body>
+</html>

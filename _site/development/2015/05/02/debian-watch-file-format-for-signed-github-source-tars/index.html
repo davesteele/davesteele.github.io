@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Debian watch file format for signed Github tar files</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Linux Musings. Things to remember/rant about.">
+    <link rel="canonical" href="https://people.debian.org/~steele/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="alternate" type="application/rss+xml" title="Linux Musings"
+     href="/feed.xml">
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5STC4K7');</script>
+    <!-- End Google Tag Manager -->
+    
+</head>
+
+
+    <body>
+
+    <header class="site-header">
+
+  <div class="wrap">
+
+    <a class="site-title" href="/">Dave Steele's Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+
+  <header class="post-header">
+    <h1>Debian watch file format for signed Github tar files</h1>
+    <p class="meta">May 2, 2015</p>
+  </header>
+
+  <article class="post-content">
+  <p>I just added uscan source tar signature validation to a project stored on
+GitHub. A cookbook approach may be helpful to others.</p>
+
+<p>The <a href="http://manpages.debian.org/cgi-bin/man.cgi?query=uscan">uscan man page</a> and <a href="https://wiki.debian.org/debian/watch#GitHub">wiki watch page</a> both provide a watch file
+recipe for pointing at GitHub pages:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/&lt;project&gt;-$1\.tar\.gz/ \
+  https://github.com/&lt;user&gt;/&lt;project&gt;/tags .*/v?(\d\S*)\.tar\.gz
+</code></pre></div>
+
+<p>Here’s what’s going on. You can refer to GitHub repositories as tar.gz files
+from the <a href="https://github.com/davesteele/splitcpy/tags">tags</a> or <a href="https://github.com/davesteele/splitcpy/releases">releases</a> pages, which list all tags stored on the
+repository. The problem is, that the naming isn’t right for debian - the
+tar file name just consists of &lt;version&gt;.tar.gz. The ‘filenamemangle’
+option remaps the GitHub tar name to one including the project name, before
+storing the tar locally.</p>
+
+<p>This is actually not good enough, as it stands, to work in a git-buildpackage
+environment. The final glob should be more specific, to match only against the
+branch holding the ‘upstream’ (that is, the non-debian) code branch.</p>
+
+<p><a href="https://wiki.debian.org/debian/watch#Cryptographic_signature_verification">Typical guidance</a> for specifying the signature url, using the pgpsigurlmangle
+option, tells how to point to the file when it is stored in the same directory
+as the tar, with an appended “.asc”:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>opts=pgpsigurlmangle=s/$/.asc/ ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-(.+)\.tar\.gz
+</code></pre></div>
+
+<p>Unfortunately, it is not practical to store the signature on the GitHub tags/release
+pages.</p>
+
+<p>I stored the signatures in a dedicated <a href="https://github.com/davesteele/splitcpy/tree/signatures">signatures</a> branch, and used a
+<a href="https://raw.githubusercontent.com/davesteele/splitcpy/debian/debian/watch">custom</a> ‘pgpsigurlmangle’ definition to point to a raw version of the
+<a href="https://raw.githubusercontent.com/davesteele/splitcpy/signatures/splitcpy-0.1.tar.gz.asc">appropriate signature</a>:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/splitcpy-$1\.tar\.gz/,\
+pgpsigurlmangle=s/github.com/raw.githubusercontent.com/;\
+s/archive\/master/signatures/;\
+s/([^\/]+)\.tar\.gz/splitcpy-$1\.tar\.gz/;\
+s/$/.asc/ \
+ https://github.com/davesteele/splitcpy/tags .+master/(\d[\d\.]*)\.tar\.gz
+</code></pre></div>
+
+<p>A couple things to note here:</p>
+
+<ul>
+  <li>That is a single, continued line.</li>
+  <li>There are two white space occurances in that line, separating the defninition.
+into an option specification, a tar listing page url, and tar search glob.</li>
+  <li>The two options defined in the ‘opts’ spec are separated by a comma.</li>
+  <li>The multiple rules in the pgpsigurlmangle definition are separated by
+semicolons.</li>
+  <li>There are four replacement rules defined for the signature url:
+    <ul>
+      <li>The first one replaces the url site name with the GitHub ‘raw’ host.</li>
+      <li>The second one points to the right branch.</li>
+      <li>The third one fixes the file name.</li>
+      <li>The fourth one adds the ‘asc’ extension.</li>
+    </ul>
+  </li>
+  <li>I’m using ‘master’ as the git-buildpackage ‘upstream’ branch.</li>
+  <li>Occurrences of ‘davesteele’ and ‘splitcpy’ will need to be replaced for
+other instances.</li>
+</ul>
+
+<p>The key to be used to verify the tar file must be stored under the debian
+directory.
+Some <a href="http://debian-administration.org/users/dkg/weblog/106">older announcements</a> state that the key is stored in
+<em>debian/upstream-signing-key.pgp</em>. Current documentation says that a binary key
+can be stored in <em>debian/upstream/signing-key.pgp</em>, or an ascii armored one in
+<em>debian/upstream/signing-key.asc</em>. All currently work, but support for the
+first form will be eventually removed.</p>
+
+<p>Also, the key can be replaced with a keyring for team project support.</p>
+
+
+  </article>
+
+</div>
+
+
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'davesteelesblog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">
+
+    <div class="footer-col-1 column">
+      <ul>
+        <li>Dave Steele's Blog</li>
+        <li><a href="mailto:steele@debian.org">steele@debian.org</a></li>
+        <li><a href="/key-366150CE.pub.txt">AE0D BF5A 92A5 ADE4 9481<br>BA6F 8A31 71EF 3661 50CE</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col-2 column">
+      <ul>
+        <li>
+        <a href="https://people.debian.org/~steele/blog/feed.xml">
+        <span>
+        <img class="crispicon" src="/icons/rss.png">
+        <span class="username">RSS</span>
+        </span>
+        </a>
+        </li>
+        
+        
+        
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Linux Musings. Things to remember/rant about.</p>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    </body>
+</html>

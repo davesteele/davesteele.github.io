@@ -1,0 +1,1514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dave Steele&#39;s Blog</title>
+    <description>Linux Musings. Things to remember/rant about.</description>
+    <link>https://people.debian.org/~steele/blog/</link>
+    <atom:link href="https://people.debian.org/~steele/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Wed, 28 Jun 2017 20:50:41 -0400</pubDate>
+    <lastBuildDate>Wed, 28 Jun 2017 20:50:41 -0400</lastBuildDate>
+    <generator>Jekyll v3.1.6</generator>
+    
+      <item>
+        <title>A Raspberry Pi Cloud Print Proxy</title>
+        <description>&lt;h2 id=&quot;making-a-raspberry-pi-google-cloud-print-proxy&quot;&gt;Making a Raspberry Pi Google Cloud Print Proxy&lt;/h2&gt;
+
+&lt;p&gt;Google &lt;a href=&quot;https://www.google.com/cloudprint/learn/&quot;&gt;Cloud Print&lt;/a&gt; has become
+a requirement for me - no more dealing
+with drivers, and I can print from anywhere using my phone. But, not all
+printers support the service (or support it adequately - I’m looking at you,
+Brother).&lt;/p&gt;
+
+&lt;p&gt;Here’s a simple procedure to turn a headless Raspberry Pi into a Google Cloud Print proxy, making
+your local printer(s) visible to Cloud Print. This is made possible using
+&lt;a href=&quot;https://github.com/armooo&quot;&gt;armoo&lt;/a&gt;’s cloudprint proxy software.&lt;/p&gt;
+
+&lt;p&gt;Before you start, you’ll need a Raspberry Pi 2 (Edit: maybe not - see Notes) or
+newer with:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Raspbian Jessie (Stretch is even better - see Notes)&lt;/li&gt;
+  &lt;li&gt;A root partition that is bigger than the default 4G (16GB recommended)&lt;/li&gt;
+  &lt;li&gt;Internet connectivity (possibly via &lt;a href=&quot;https://davesteele.github.io/comitup/&quot;&gt;Comitup&lt;/a&gt;)&lt;/li&gt;
+  &lt;li&gt;Access to a printer via the network or USB&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For the installation, you’ll also want another computer on the same network with an ssh client
+(like &lt;a href=&quot;http://www.chiark.greenend.org.uk/~sgtatham/putty/&quot;&gt;PuTTY&lt;/a&gt;) and
+a web browser logged in to your Google account. What you don’t need is a
+desktop environment on the Pi, or a connected
+keyboard/monitor/mouse. All interaction can be achieved via ssh and
+another browser connected to the network.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1---install&quot;&gt;Step 1 - Install&lt;/h3&gt;
+
+&lt;p&gt;Establish an ssh session with the Pi, and run the following commands
+to install the required software from the &lt;a href=&quot;http://davesteele.github.io/cloudprint-service/&quot;&gt;cloudprint repository&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Add the cloudprint repo to your apt environment.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;echo &quot;deb http://davesteele.github.io/cloudprint-service/repo cloudprint-jessie main&quot; | sudo tee /etc/apt/sources.list.d/cloudprint.list
+wget -q -O - https://davesteele.github.io/key-366150CE.pub.txt | sudo apt-key add -
+sudo apt-get update
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Install the software. This will likely involve more than 40 packages.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;sudo apt-get -y upgrade
+sudo apt-get -y install cloudprint-service
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Make the &lt;a href=&quot;https://www.cups.org/&quot;&gt;CUPS&lt;/a&gt; web page externally accessible.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;sudo cupsctl --remote-admin
+sudo usermod -a -G lpadmin pi
+sudo systemctl restart cups
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;At this point you should have the &lt;em&gt;cups&lt;/em&gt; service running.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-2---configure&quot;&gt;Step 2 - Configure&lt;/h3&gt;
+
+&lt;p&gt;Use the CUPS web interface at &lt;em&gt;http://&amp;lt;piaddr&amp;gt;:631/&lt;/em&gt; to add a
+printer to your setup. Your browser may complain about unsafe connections
+for &lt;em&gt;https&lt;/em&gt; links. Allow these connections. When it asks, use the &lt;em&gt;pi&lt;/em&gt;
+user credentials.&lt;/p&gt;
+
+&lt;p&gt;From the command line on the Pi,
+establish Google Cloud Print authentication
+with:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;sudo cps-auth
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The output of the &lt;em&gt;cps_auth&lt;/em&gt; command will include a URL. Copy this URL to your browser,
+and use it to establish authentication.&lt;/p&gt;
+
+&lt;p&gt;Now restart the cloudprint service to use this account.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;sudo systemctl restart cloudprintd
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Consider disabling CUPS remote administration, to improve security. Also, make sure you
+have changed the default SSH credentials.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;sudo cupsctl --no-remote-admin
+sudo systemctl restart cups
+passwd
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-3---print&quot;&gt;Step 3 - Print&lt;/h3&gt;
+
+&lt;p&gt;Your printer should be visible at &lt;a href=&quot;https://www.google.com/cloudprint/#printers&quot;&gt;https://www.google.com/cloudprint/#printers&lt;/a&gt;. Enjoy!&lt;/p&gt;
+
+&lt;h4 id=&quot;notes&quot;&gt;Notes&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;I say “Raspberry Pi 2 or newer” because I’ve had problems running this with only 
+512 MB of RAM. Many others have reported success with smaller Pis, such as the Zero.&lt;/li&gt;
+  &lt;li&gt;Don’t like insecure &lt;em&gt;https&lt;/em&gt;? Then skip the &lt;em&gt;/etc/cups/cupsd.conf&lt;/em&gt; edits and
+manage printers from the Pi desktop.&lt;/li&gt;
+  &lt;li&gt;If you are running a newer version of Raspbian than Jessie, cloudprint-service
+is in the official repository. You don’t need to modify the apt environment.&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Sat, 23 Apr 2016 08:34:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/raspberrypi/2016/04/23/raspberry-pi-cloudprint/</guid>
+        
+        
+        <category>raspberrypi</category>
+        
+      </item>
+    
+      <item>
+        <title>Add i18n support to your Python Package Install</title>
+        <description>&lt;p&gt;Python support for translation file installation is not great. Once you
+understand &lt;a href=&quot;https://davesteele.github.io/debian/development/2015/12/10/i18n-build-flow/&quot;&gt;how the the i18n build process works&lt;/a&gt;, it’s not too hard to
+hand-roll the tasks yourself. Here’s how I did it.&lt;/p&gt;
+
+&lt;p&gt;First, add this code to setup.py:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;from distutils.core import setup, Command
+from distutils.command.build import build
+from distutils.command.clean import clean
+
+# for setuptools use
+# from setuptools.command.build_py import build_py as build
+
+import os
+import shutil
+
+package = &quot;mypackage&quot;      # &amp;lt;- change this
+
+podir = &quot;po&quot;
+pos = [x for x in os.listdir(podir) if x[-3:] == &quot;.po&quot;]
+langs = sorted([os.path.split(x)[-1][:-3] for x in pos])
+
+
+def modir(lang):
+    mobase = &quot;build/mo&quot;
+    return os.path.join(mobase, lang)
+
+
+def mkmo(lang):
+    outpath = modir(lang)
+    if os.path.exists(outpath):
+        shutil.rmtree(outpath)
+    os.makedirs(outpath)
+
+    inpath = os.path.join(podir, lang + &quot;.po&quot;)
+
+    cmd = &quot;msgfmt %s -o %s/%s.mo&quot; % (inpath, outpath, package)
+
+    os.system(cmd)
+
+
+def merge_i18n():
+    cmd = &quot;LC_ALL=C intltool-merge -u -c ./po/.intltool-merge-cache ./po &quot;
+    for infile in (x[:-3] for x in os.listdir(&#39;.&#39;) if x[-3:] == &#39;.in&#39;):
+        print(&quot;Processing %s.in to %s&quot; % (infile, infile))
+
+        if &#39;desktop&#39; in infile:
+            flag = &#39;-d&#39;
+        elif &#39;schema&#39; in infile:
+            flag = &#39;-s&#39;
+        elif &#39;xml&#39; in infile:
+            flag = &#39;-x&#39;
+        else:
+            flag = &#39;&#39;
+
+        if flag:
+            os.system(&quot;%s %s %s.in %s&quot; % (cmd, flag, infile, infile))
+
+
+class my_build(build):
+    def run(self, *args):
+        build.run(self, *args)
+
+        for lang in langs:
+            mkmo(lang)
+
+        merge_i18n()
+
+
+def polist():
+    dst_tmpl = &quot;share/locale/%s/LC_MESSAGES/&quot;
+    polist = [(dst_tmpl % x, [&quot;%s/%s.mo&quot; % (modir(x), package)]) for x in langs]
+
+    return polist
+
+
+class my_build_i18n(Command):
+    description = &quot;Create/update po/pot translation files&quot;
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        print(&quot;Creating POT file&quot;)
+        cmd = &quot;cd po; intltool-update --pot --gettext-package=%s&quot; % package
+        os.system(cmd)
+
+        for lang in langs:
+            print(&quot;Updating %s PO file&quot; % lang)
+            cmd = &quot;cd po; intltool-update --dist \
+                   --gettext-package=%s %s &amp;gt;/dev/null 2&amp;gt;&amp;amp;1&quot; % (package, lang)
+            os.system(cmd)
+
+
+class my_clean(clean):
+    def run(self):
+        clean.run(self)
+
+        filelist = [x[:-3] for x in os.listdir(&#39;.&#39;) if x[-3:] == &#39;.in&#39;]
+        filelist += [&#39;po/.intltool-merge-cache&#39;]
+        for infile in filelist:
+            if os.path.exists(infile):
+                os.unlink(infile)
+
+        for dir in [&#39;build/mo&#39;, &#39;build/scripts-2.7&#39;, &#39;build/scripts-3.4&#39;
+                    &#39;build/scripts-3.5&#39;]:
+            if os.path.exists(dir):
+                shutil.rmtree(dir)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then modify the &lt;em&gt;setup()&lt;/em&gt; call to use these new commands, and to add the
+compiled translation files to the install:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;setup(
+    name=package,
+    ...
+    data_files=[
+        (&#39;share/icons/hicolor/16x16/apps&#39;, [&#39;icons/16x16/mypackage.png&#39;]),
+        ...
+               ] + polist(),
+    ...
+    cmdclass={
+        &#39;build_i18n&#39;: my_build_i18n,
+        &#39;clean&#39;: my_clean,
+        &#39;build&#39;: my_build,
+             },
+     )
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This process adds a new command, &lt;em&gt;python setup.py build_i18n&lt;/em&gt;, which will
+create/update the &lt;em&gt;.pot&lt;/em&gt; and &lt;em&gt;.po&lt;/em&gt; files in &lt;em&gt;/po&lt;/em&gt;. The normal build/install
+processed is enhanced to install compiled &lt;em&gt;.mo&lt;/em&gt; files in &lt;em&gt;/usr/share/locale/&lt;/em&gt;.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 11 Dec 2015 05:50:00 -0500</pubDate>
+        <link>https://people.debian.org/~steele/blog/development/2015/12/11/add-i18n-to-setup-py/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/development/2015/12/11/add-i18n-to-setup-py/</guid>
+        
+        
+        <category>development</category>
+        
+      </item>
+    
+      <item>
+        <title>Understanding the i18n Build Flow</title>
+        <description>&lt;p&gt;Wherein I detail how human language translation is incorporated into software
+packages as a part of the build process.&lt;/p&gt;
+
+&lt;h2 id=&quot;two-translation-build-environments&quot;&gt;Two Translation Build Environments&lt;/h2&gt;
+
+&lt;p&gt;The grandaddy package for integrating &lt;a href=&quot;https://en.wikipedia.org/wiki/Internationalization_and_localization#Naming&quot;&gt;i18n&lt;/a&gt; translations into software is GNU
+&lt;a href=&quot;https://www.gnu.org/software/gettext/&quot;&gt;gettext&lt;/a&gt;. First released in 1995, gettext initially focused on providing
+translation services for software written in ‘C’. While it includes copious
+&lt;a href=&quot;https://www.gnu.org/software/gettext/manual/html_node/index.html&quot;&gt;documentation&lt;/a&gt; on details of its many components, the expectation seems to be
+that most developers interact with gettext by way of &lt;a href=&quot;https://www.guyrutenberg.com/2014/11/01/gettext-with-autotools-tutorial/&quot;&gt;autotools&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Note that the term ‘gettext’ refers both to the package name as well as the
+&lt;a href=&quot;http://linux.die.net/man/3/gettext&quot;&gt;function&lt;/a&gt;/&lt;a href=&quot;http://linux.die.net/man/1/gettext&quot;&gt;utility&lt;/a&gt; that converts a string to its translated form.&lt;/p&gt;
+
+&lt;p&gt;The ‘C’/Autotools focus for gettext was perhaps the driving force for the
+development of &lt;a href=&quot;http://freedesktop.org/wiki/Software/intltool/&quot;&gt;intltool&lt;/a&gt; by freedesktop.org. Intltool acts as a wrapper
+around gettext, simplifying the interface while at the same time expanding
+the types of files supported (at least historically). The core
+intltool documentation consists of the included &lt;a href=&quot;http://www.die.net/search/?q=intltool-&amp;amp;sa=Search&amp;amp;ie=ISO-8859-1&amp;amp;cx=partner-pub-5823754184406795%3A54htp1rtx5u&amp;amp;cof=FORID%3A9&amp;amp;siteurl=linux.die.net%2Fman%2F&amp;amp;ref=&amp;amp;ss=2303j1110801j9&quot;&gt;man pages&lt;/a&gt; of the components.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&quot;https://docs.python.org/3.5/library/gettext.html#internationalizing-your-programs-and-modules&quot;&gt;other environments&lt;/a&gt; available for working in this same space.
+Generally, these are more limited in scope, and often not as well supported.&lt;/p&gt;
+
+&lt;p&gt;While learning these environments, I felt that both gave too little emphasis
+on the big picture. This became most acute as I was dealing with the limited
+built-in i18n support for some &lt;a href=&quot;https://www.debian.org/doc/manuals/intro-i18n/ch-otherlanguage.en.html#s-fortran&quot;&gt;languages other than ‘C’&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;So, here’s how human language translation support gets built into your package.
+For each step, I’ll show the commands in both intltool and gettext to perform
+the action. In the case of gettext, I’m making a stab here. I use intltool
+exclusively.&lt;/p&gt;
+
+&lt;h2 id=&quot;two-translation-strategies&quot;&gt;Two Translation Strategies&lt;/h2&gt;
+
+&lt;p&gt;For software, translation information is compiled into binary,
+language-specific &lt;em&gt;.mo&lt;/em&gt; files. Those files are consulted at run time,
+as needed, to convert English strings into appropriate localized ones.&lt;/p&gt;
+
+&lt;p&gt;For text and data files, all of the translated strings are often added to the
+source file at build time. XML files and &lt;a href=&quot;https://developer.gnome.org/desktop-entry-spec/&quot;&gt;.desktop&lt;/a&gt; files fall into this
+category.&lt;/p&gt;
+
+&lt;p&gt;Though the build process handles both cases at the same time, we’ll
+consider them separately.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-build-steps-run-time-translation&quot;&gt;The Build Steps (run-time translation)&lt;/h3&gt;
+
+&lt;h4 id=&quot;step-1---string-identification-in-software-source&quot;&gt;&lt;em&gt;Step 1 - String identification in software source&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;The means to do this are similar-but-different across software
+languages. For Python, the following is required at the top of the file:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;import locale
+import gettext
+
+locale.setlocale(locale.LC_ALL, &#39;&#39;)
+gettext.textdomain(&amp;lt;package name&amp;gt;)
+_ = gettext.gettext
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After that, use the underscore function you just created to both identify and
+convert text strings to the appropriate language:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;print(_(&quot;Please print this in my language&quot;))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here are similar instructions for &lt;a href=&quot;https://fedoraproject.org/wiki/How_to_do_I18N_through_gettext&quot;&gt;C&lt;/a&gt;, &lt;a href=&quot;http://www.rubydoc.info/gems/gettext/#Usage&quot;&gt;Ruby&lt;/a&gt;, and &lt;a href=&quot;http://stackoverflow.com/questions/2221562/using-gettext-in-bash&quot;&gt;Bash&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-2---create-the-translation-template-pot-file&quot;&gt;&lt;em&gt;Step 2 - Create the Translation Template (.POT) file&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Using gettext:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ cd po; xgettext -f POTFILES.in -f &amp;lt;package name&amp;gt;.pot -a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using intltool:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ cd po; intltool-update --pot --gettext-package=&amp;lt;package name&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In both cases there must first be a &lt;em&gt;po/&lt;/em&gt; directory in your source tree, and a
+&lt;em&gt;po/POTFILES.in&lt;/em&gt; file which defines the source files to be processed, relative
+to the root of the project.&lt;/p&gt;
+
+&lt;p&gt;The result is a &lt;em&gt;po/&amp;lt;package name&amp;gt;.pot&lt;/em&gt; file (&lt;a href=&quot;https://github.com/davesteele/gnome-gmail/blob/master/po/gnome-gmail.pot&quot;&gt;example&lt;/a&gt;), which contains all of the strings
+to be translated.&lt;/p&gt;
+
+&lt;p&gt;‘POT’ stands for “Portable Object Template”, if that helps.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-3---transform-the-pot-to-individual-po-translation-files&quot;&gt;&lt;em&gt;Step 3 - Transform the POT to individual (.PO) translation files&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;This is essentially a manual process. For each target language, the
+&lt;em&gt;po/&amp;lt;package name&amp;gt;.pot&lt;/em&gt; file is copied to &lt;em&gt;po/&amp;lt;language&amp;gt;.po&lt;/em&gt;,
+or to &lt;em&gt;po/&amp;lt;language&amp;gt;-&amp;lt;COUNTRY&amp;gt;.po&lt;/em&gt;, where &lt;em&gt;&amp;lt;language&amp;gt;&lt;/em&gt;
+is an &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes&quot;&gt;ISO 639-1&lt;/a&gt; two-letter language code, and &lt;em&gt;&amp;lt;COUNTRY&amp;gt;.po&lt;/em&gt; is a
+two-letter &lt;a href=&quot;https://en.wikipedia.org/wiki/ISO_3166-1&quot;&gt;ISO 3166-1&lt;/a&gt; (capitalized) two-letter country code (&lt;a href=&quot;https://github.com/davesteele/gnome-gmail/blob/master/po/pt_BR.po&quot;&gt;po example&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;The resulting text file is hand-edited to add the translation
+strings. This can be done with an ordinary text editor, though there are
+special editors for the job. &lt;a href=&quot;https://poedit.net/&quot;&gt;Poedit&lt;/a&gt; is a popular choice.&lt;/p&gt;
+
+&lt;p&gt;The skill set required for this step is obviously very different than for
+other software development tasks. A number of communities have been set up
+to facilitate those with the ability to do this job well. &lt;a href=&quot;https://wiki.ubuntu.com/Translations/Contact/Teams&quot;&gt;Ubuntu&lt;/a&gt; has done
+a good job of this, for software which is stored in their
+source control system. &lt;a href=&quot;https://www.debian.org/international/l10n/&quot;&gt;Debian&lt;/a&gt; also has a means to collect and &lt;a href=&quot;https://www.debian.org/international/l10n/po/fr&quot;&gt;status&lt;/a&gt; all of
+the software in the distribution which supports i18n. It’s not difficult to
+host a &lt;a href=&quot;https://davesteele.github.io/gnome-gmail/translation.html&quot;&gt;translation development environment&lt;/a&gt; on your own.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-4---update-the-po-files&quot;&gt;&lt;em&gt;Step 4 - Update the PO files&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Using gettext, for every &lt;em&gt;&amp;lt;language&amp;gt;[-&amp;lt;COUNTRY&amp;gt;].po&lt;/em&gt; file present in &lt;em&gt;/po&lt;/em&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ cd po; msgmerge -u --backup=none &amp;lt;language&amp;gt;.po &amp;lt;package name&amp;gt;.pot
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using intltool, for every &lt;em&gt;&amp;lt;language&amp;gt;[-&amp;lt;COUNTRY&amp;gt;]&lt;/em&gt; PO file present in &lt;em&gt;/po&lt;/em&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ cd po; intltool-update --dist --gettext-package=&amp;lt;package name&amp;gt; &amp;lt;language&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Once created, the &lt;em&gt;.po&lt;/em&gt; files need to be updated whenever there are changes
+to the &lt;em&gt;.pot&lt;/em&gt; file. These command will do that - refreshing the strings to be
+translated and their source line numbers.&lt;/p&gt;
+
+&lt;p&gt;Beyond that, the steps up to this point do not need to be executed with every build.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-5---transform-the-po-files-to-binary-mo-translation-files&quot;&gt;&lt;em&gt;Step 5 - Transform the PO files to binary (.MO) translation files&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Using gettext, for every &lt;em&gt;&amp;lt;language&amp;gt;[-&amp;lt;country&amp;gt;].po&lt;/em&gt; file present in &lt;em&gt;/po&lt;/em&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ msgfmt po/&amp;lt;language&amp;gt;[-&amp;lt;COUNTRY&amp;gt;].po -o &amp;lt;build_dir&amp;gt;/mo/&amp;lt;language&amp;gt;[-&amp;lt;COUNTRY&amp;gt;]/&amp;lt;package name&amp;gt;.mo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Intltool uses the same command.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-6---incorporate-the-mo-files-into-the-package&quot;&gt;&lt;em&gt;Step 6 - Incorporate the MO files into the package&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Each &lt;em&gt;.mo&lt;/em&gt; file gets installed with the package, to the path
+&lt;em&gt;/usr/share/locale/&amp;lt;language&amp;gt;[-&amp;lt;COUNTRY&amp;gt;]/LC_MESSAGES/&amp;lt;package name&amp;gt;.mo&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-build-steps-build-time-translation&quot;&gt;The Build Steps (build-time translation)&lt;/h3&gt;
+
+&lt;h4 id=&quot;step-1---string-identification-in-text-source&quot;&gt;Step 1 - &lt;em&gt;String identification in text source&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Every &lt;em&gt;&amp;lt;file&amp;gt;&lt;/em&gt; in the build environment which is going to be translated
+is renamed to &lt;em&gt;&amp;lt;file&amp;gt;.in&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Edit the &lt;em&gt;.in&lt;/em&gt; files to identify translatable strings. For desktop files,
+prepend the translatable entries with an underscore:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;[Desktop Entry]
+_Name=My Package
+_GenericName=Doing Software Right
+_Comment=Integrate GMail with your desktop
+MimeType=application/mbox;message/rfc822;x-scheme-handler/mailto;
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For XML files, prepend translatable tags with an underscore. After
+translation, they will be repeated in the file for each language, with an
+“xml:lang” attribute identifying the language.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;&amp;lt;!DOCTYPE default-apps SYSTEM &quot;gnome-da-list.dtd&quot;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;default-apps&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;mail-readers&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;mail-reader&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;nt&quot;&gt;&amp;lt;_name&amp;gt;&lt;/span&gt;My Package&lt;span class=&quot;nt&quot;&gt;&amp;lt;/_name&amp;gt;&lt;/span&gt;
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;steps-2-through-4---manage-pot-and-po-files&quot;&gt;&lt;em&gt;Steps 2 through 4 - Manage POT and PO files&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;These steps are identical to the ones listed above. Add the &lt;em&gt;&amp;lt;file&amp;gt;.in&lt;/em&gt; files
+to &lt;em&gt;POTFILES.in&lt;/em&gt;, and run as described.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-5---translate-the-text-files&quot;&gt;&lt;em&gt;Step 5 - Translate the text files&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Using gettext:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ msgfmt &amp;lt;flag&amp;gt; --template=&amp;lt;file&amp;gt;.in -d po -o &amp;lt;file&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using intltool:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ intltool-merge -u -c ./po/.intltool-merge-cache ./po &amp;lt;flag&amp;gt; &amp;lt;file&amp;gt;.in &amp;lt;file&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that &lt;em&gt;&amp;lt;flag&amp;gt;&lt;/em&gt; defines the text file format. See the corresponding
+man pages for details. Also note that msgfmt expects a &lt;em&gt;po/LINGUAS&lt;/em&gt; file to
+list all of the PO files present.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-special-case---gui-definition-files&quot;&gt;A Special Case - GUI Definition Files&lt;/h3&gt;
+
+&lt;p&gt;Translations are handled differently by different GUI environments. Refer to
+the documentation for the environment you are using.&lt;/p&gt;
+
+&lt;p&gt;For Glade, translatable strings are flagged using the Glade editor. The Glade
+file is added to &lt;em&gt;po/POTFILES.in&lt;/em&gt;, and processed normally to the MO
+translation files.&lt;/p&gt;
+
+&lt;h3 id=&quot;cleanup&quot;&gt;Cleanup&lt;/h3&gt;
+
+&lt;p&gt;The process described here will leave a &lt;em&gt;&amp;lt;file&amp;gt;&lt;/em&gt; for every
+&lt;em&gt;&amp;lt;file&amp;gt;.in&lt;/em&gt;, the &lt;em&gt;&amp;lt;build&amp;gt;/mo&lt;/em&gt; directory tree, and a
+&lt;em&gt;po/.intltool-merge-cache&lt;/em&gt; file. These will need to be cleaned up.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;At this point, your program supports translation. To demonstrate,
+first, add support for another language to your system:&lt;/p&gt;
+
+&lt;p&gt;Ubuntu&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ sudo apt-get install language-pack-&amp;lt;language&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Debian&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ sudo dpkg-reconfigure locales
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;List the locales available:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ locale -a
+C
+C.UTF-8
+en_US.utf8
+fr_FR.utf8
+POSIX
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Use an alternative locale to run your program:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ LC_ALL=fr_FR.utf8 my-program
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If life is good, you’ll see your work in a different language.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 10 Dec 2015 16:29:00 -0500</pubDate>
+        <link>https://people.debian.org/~steele/blog/debian/development/2015/12/10/i18n-build-flow/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/debian/development/2015/12/10/i18n-build-flow/</guid>
+        
+        
+        <category>debian</category>
+        
+        <category>development</category>
+        
+      </item>
+    
+      <item>
+        <title>Network Traffic Restrictions</title>
+        <description>&lt;p&gt;I’m giving a &lt;a href=&quot;https://ohiolinux.org/sessions/detecting-characterizing-and-circumventing-network-traffic-restrictions&quot;&gt;talk&lt;/a&gt;
+today at &lt;a href=&quot;https://ohiolinux.org/&quot;&gt;Ohio LinuxFest&lt;/a&gt;, on investigating network issues for home networks.
+The slides are available &lt;a href=&quot;https://docs.google.com/presentation/d/1qShH1xoh1GvMmjGOApN6TWfBq00yE77py_SCazcWAKk/edit?usp=sharing&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;It references a number of my packages:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/davesteele/netbwtools&quot;&gt;netbwtools&lt;/a&gt; - Network bandwidth testing tools, with plottable CSV output&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://davesteele.github.io/splitcpy/&quot;&gt;splitcpy&lt;/a&gt; - Copy files over the network using multiple parallel SSH streams&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/davesteele/mrtg-probes&quot;&gt;mrtg-probes&lt;/a&gt; - Monitor site download performance in &lt;a href=&quot;https://oss.oetiker.ch/mrtg/doc/mrtg.en.html&quot;&gt;MRTG&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/davesteele/server-setup-scripts&quot;&gt;server-setup-scripts&lt;/a&gt; - Server setup scripts (SNMPd)&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sat, 03 Oct 2015 07:00:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/network/2015/10/03/network-talk/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/network/2015/10/03/network-talk/</guid>
+        
+        
+        <category>network</category>
+        
+      </item>
+    
+      <item>
+        <title>Intermediate GPG</title>
+        <description>&lt;p&gt;Let’s say you have been using  GnuPG for some amount of time. You’ve generated a key for yourself, know how to put it on a keyserver, understand what public keys are used for, know what the ‘web of trust’ is, and the difference between encryption and signing.&lt;/p&gt;
+
+&lt;p&gt;Then, at some point, you have a sudden need to understand the workings of gpg in more detail. This is typically because you are about to attend your first &lt;a href=&quot;https://en.wikipedia.org/wiki/Key_signing_party&quot;&gt;key signing&lt;/a&gt;, or because you start looking into why people keep talking about the need for ‘&lt;a href=&quot;https://wiki.debian.org/Subkeys&quot;&gt;subkeys&lt;/a&gt;’.&lt;/p&gt;
+
+&lt;p&gt;I found that transition bumpy. Here is a short list of topics that I believe everyone should understand for intermediate-level gpg operations.&lt;/p&gt;
+
+&lt;h3 id=&quot;how-to-keep-straight-the-various-things-called-keys&quot;&gt;How to keep straight the various things called ‘keys’&lt;/h3&gt;
+
+&lt;p&gt;When you first created your “key” using “gpg –gen-key”, you actually made a “key certificate”. Key certificates typically contain multiple public key pairs, plus other information.&lt;/p&gt;
+
+&lt;p&gt;At the top of the key certificate is the ‘Primary’ (or ‘Master’) key pair, which is used for signing and certification  (“Certification” is the process of signing keys).&lt;/p&gt;
+
+&lt;p&gt;The Primary key pair has one or more User IDs (UID) associated with it. The UID is a just a string (e.g. “David Steele &amp;lt;dsteele@gmail.com&amp;gt;”) that defines a person/entity that has access to the secret half of the key pairs.&lt;/p&gt;
+
+&lt;p&gt;Most key certificates store a separate “subkey” pair to be used for encryption. The clear divide between signing and encryption keys is done to avoid a &lt;a href=&quot;http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key&quot;&gt;vulnerability&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;So, in gpg, the word ‘key’ may refer to a key certificate, to one of the key pairs in the certificate, or to one of the public/private keys in a key pair, depending on the context. If you understand the roles that each of these entities provides, you should be able to keep the references straight. The rest of this document is intended to help with that.&lt;/p&gt;
+
+&lt;h3 id=&quot;key-signatures-explicitly-cover-only-a-single-primary-public-key-plus-a-user-id&quot;&gt;Key signatures explicitly cover only a single Primary public key plus a User ID&lt;/h3&gt;
+
+&lt;p&gt;When someone signs your ‘key’, the data included in the signature operation consists only of the public Primary key in your certificate, plus one UID. No other certificate data is included in the data being signed.&lt;/p&gt;
+
+&lt;p&gt;This is important to know, because it means that a key signature against your key certificate/UID will remain valid for that UID as long as the Primary key and the UID have not been revoked, regardless of how the rest of the certificate is amended.&lt;/p&gt;
+
+&lt;p&gt;It also means that, if you have more than one UID in your certificate, multiple independent signatures are required to cover all of them.&lt;/p&gt;
+
+&lt;h3 id=&quot;trust-for-other-keys-in-the-certificate-is-provided-by-way-of-self-signatures-using-the-primary-key&quot;&gt;Trust for other keys in the certificate is provided by way of ‘self signatures’ using the Primary key&lt;/h3&gt;
+
+&lt;p&gt;Since external key signatures only provides trust as far as the Primary key, another mechanism is needed to prove that the other keys in the certificates are trusted. This is provided by ‘self signatures’ - signatures of the other keys made using the Primary key. That provides a path of trust from the person who signed your key, through the Primary key, to each of the subkeys.&lt;/p&gt;
+
+&lt;p&gt;Self signatures are automatically created whenever keys are manipulated in your certificate. That is why gpg asks for the Primary key passphrase whenever you work with subkeys.&lt;/p&gt;
+
+&lt;p&gt;This prevalent use of self signatures means that the only time you need to worry about losing your position in the web of trust is when you add a UID or you transition to a new certificate. You are free to make any other changes without affecting your trust level.&lt;/p&gt;
+
+&lt;p&gt;Hearkening back to the multiple meanings of ‘key’ - when you attend a key signing, you are collecting signatures against your key (Primary key) in order to provide web-of-trust verifiability for the keys (Primary and subkeys) that make up your key (certificate). Make sense?&lt;/p&gt;
+
+&lt;h3 id=&quot;in-general-nothing-is-ever-deleted-from-a-key-certificate&quot;&gt;In general, nothing is ever deleted from a key certificate&lt;/h3&gt;
+
+&lt;p&gt;This is true because it is enforced by key servers. Deleting a key in your local copy of your key certificate will have no effect on the data stored and provided by public key servers.&lt;/p&gt;
+
+&lt;p&gt;If what you want to do is delete a key or a UID, what you do instead is create a &lt;a href=&quot;https://www.debian-administration.org/article/450/Generating_a_revocation_certificate_with_gpg&quot;&gt;revocation entry&lt;/a&gt; for the key/UID using ‘gpg –edit-key’, and republish your key certificate with ‘gpg –send-key’. (Note that good key hygiene calls for pre-generating a &lt;a href=&quot;https://www.debian-administration.org/article/450/Generating_a_revocation_certificate_with_gpg&quot;&gt;revocation certificate&lt;/a&gt; at key creation time, and keeping it around in case it is needed)&lt;/p&gt;
+
+&lt;h3 id=&quot;key-signatures-generally-live-only-in-the-certificate-holding-the-key-being-signed&quot;&gt;Key signatures generally live only in the certificate holding the key being signed&lt;/h3&gt;
+
+&lt;p&gt;When someone signs your Primary key, they do so by downloading your key certificate, and then performing a signing operation with, ‘gpg –sign-key’. They then send you the entire copy of your certificate, including this new signature. When you import this, gpg recognizes the duplication, and just adds the new signature to your local copy of the certificate.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-key-certificate-may-be-referenced-in-gpg-using-the-key-idfingerprint-of-any-of-the-enclosed-keys&quot;&gt;A key certificate may be referenced in gpg using the key id/fingerprint of any of the enclosed keys&lt;/h3&gt;
+
+&lt;p&gt;By convention, your certificate is identified by the key id/fingerprint of your Primary key. But, this is just a convention - references to any of your subkeys may be used instead.&lt;/p&gt;
+
+&lt;p&gt;Consider my current key:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ gpg --edit-key &quot;AE0D BF5A 92A5 ADE4 9481  BA6F 71EF 3661 50CE&quot;
+...
+pub  4096R/366150CE  created: 2010-08-15  expires: never       usage: SC  
+                     trust: ultimate      validity: ultimate
+sub  4096R/0D929394  created: 2010-08-15  expires: never       usage: E   
+sub  4096R/0A817A82  created: 2014-08-15  expires: 2019-08-14  usage: S   
+[ultimate] (1). David Steele &amp;lt;dsteele@gmail.com&amp;gt;
+[ultimate] (2)  David Steele &amp;lt;daves@users.sourceforge.net&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This key has a Primary key with the key id ‘366150CE’, which can be used for certification (usage ‘C’, again for signing keys) and for signing (usage ‘S’). The encryption key , ‘0D929394’ (usage ‘E’) was created automatically with the certificate. I added a signing-only subkey, ‘0A817A82’, some time later.&lt;/p&gt;
+
+&lt;p&gt;If I wish to encrypt data using my encryption key, I can actually use any one of these key ids to identify the key certificate. That is, on my computer, each of these commands perform exactly the same operation, encryption using key ‘0D929394’:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ gpg --encrypt --recipient 366150CE foo
+$ gpg --encrypt --recipient 0D929394 foo
+$ gpg --encrypt --recipient 0A817A82 foo
+$ gpg --encrypt --recipient dsteele@gmail.com foo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that I am using short ids to reference keys to be used for encryption - in practice that is considered a &lt;a href=&quot;https://www.debian-administration.org/users/dkg/weblog/105&quot;&gt;bad idea&lt;/a&gt;. Fingerprints should be used instead (‘gpg –list-keys –fingerprints &amp;lt;key reference&amp;gt;’).&lt;/p&gt;
+
+&lt;h3 id=&quot;but-gpg-will-select-the-key-to-use-automatically-regardless-of-the-identifying-key-id&quot;&gt;But, gpg will select the key to use automatically, regardless of the identifying key id&lt;/h3&gt;
+
+&lt;p&gt;Again, you can use the key id of any of the keys in your certificate to identify the key certificate. But, once gpg has picked out the certificate, it ignores the specific subkey you may have specified, and instead automatically selects the key to use.&lt;/p&gt;
+
+&lt;p&gt;For the key listed above, there are two keys which may be used for signing, ‘366150CE’ and ‘0A817A82’. Regardless of which key id may be reference in ‘gpg –sign’, the key ‘0A817A82’ is always used. This is because gpg will always select the &lt;a href=&quot;http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM&quot;&gt;newest valid key&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;It is possible to override automatic key selection by appending the key id/finger print with an &lt;a href=&quot;https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html&quot;&gt;exclamation mark&lt;/a&gt; on the command line.&lt;/p&gt;
+
+&lt;h3 id=&quot;you-should-consider-a-number-of-configuration-options-before-creating-and-signing-keys&quot;&gt;You should consider a number of configuration options before creating and signing keys&lt;/h3&gt;
+
+&lt;p&gt;The definition of what constitutes adequate encryption complexity changes over time. If you would like to be on the leading edge of that wave, consider the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;‘gpg –gen-key’ using the default key types (‘RSA and RSA’) and increase the key length from the default to a length of 4096 bits&lt;/li&gt;
+  &lt;li&gt;strengthen the hash algorithm used for signing&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The mechanics for both of these changes are described on the &lt;a href=&quot;http://keyring.debian.org/creating-key.html&quot;&gt;Debian keyring website&lt;/a&gt;. If you do update the signing hash algorithm, you should update all of the self signatures in the key certificate.&lt;/p&gt;
+
+&lt;p&gt;Note that ‘fixing’ the key length of your primary would invalidate all of the web-of-trust signatures in your key certificate. It amounts to creating a new certificate.&lt;/p&gt;
+
+&lt;h3 id=&quot;certificate-configuration-information-is-stored-in-the-primary-key-self-signature&quot;&gt;Certificate configuration information is stored in the Primary key self signature&lt;/h3&gt;
+
+&lt;p&gt;Key options, such as the preferred signing algorithm, are stored as a part of the self signature. Many ‘gpg –edit-key’ operations may therefore result in a new self signature being appended to a key.&lt;/p&gt;
+
+&lt;h3 id=&quot;subkeys-can-be-useful-but-you-dont-have-to-deal-with-that-before-the-keysigning&quot;&gt;Subkeys can be useful, but you don’t have to deal with that before the keysigning&lt;/h3&gt;
+
+&lt;p&gt;If you are like I was, you may be contemplating key signing parties and subkeys at the same time, and wondering how the two topics may interact. The answer is, they don’t. You may decide to generate your subkeys before or after a key signing. The validity of the new subkey is identical either way.&lt;/p&gt;
+
+&lt;h3 id=&quot;trust-vs-validity&quot;&gt;‘Trust’ vs. ‘Validity’&lt;/h3&gt;
+
+&lt;p&gt;The gpg application has precise definitions for these terms, which doesn’t always match general usage. A key’s ‘validity’ is defined by the web of trust provided by distributed key signatures, while ‘trust’ is defined on your local keyring using the ‘trust’ command under ‘gpg –edit-key’. The interaction of these two terms is described in detail in the &lt;a href=&quot;https://www.gnupg.org/gph/en/manual/x334.html#AEN384&quot;&gt;GNU Privacy Handbook&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;more-detail-is-available&quot;&gt;More detail is available.&lt;/h3&gt;
+
+&lt;p&gt;For more detail on what key certificates look like, and how gpg works, see &lt;a href=&quot;https://davesteele.github.io/gpg/2014/09/20/anatomy-of-a-gpg-key/&quot;&gt;Anatomy of a GPG Key&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 01 Aug 2015 17:44:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/gpg/2015/08/01/intermediate-gpg/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/gpg/2015/08/01/intermediate-gpg/</guid>
+        
+        
+        <category>gpg</category>
+        
+      </item>
+    
+      <item>
+        <title>Debian watch file format for signed Github tar files</title>
+        <description>&lt;p&gt;I just added uscan source tar signature validation to a project stored on
+GitHub. A cookbook approach may be helpful to others.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;http://manpages.debian.org/cgi-bin/man.cgi?query=uscan&quot;&gt;uscan man page&lt;/a&gt; and &lt;a href=&quot;https://wiki.debian.org/debian/watch#GitHub&quot;&gt;wiki watch page&lt;/a&gt; both provide a watch file
+recipe for pointing at GitHub pages:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/&amp;lt;project&amp;gt;-$1\.tar\.gz/ \
+  https://github.com/&amp;lt;user&amp;gt;/&amp;lt;project&amp;gt;/tags .*/v?(\d\S*)\.tar\.gz
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here’s what’s going on. You can refer to GitHub repositories as tar.gz files
+from the &lt;a href=&quot;https://github.com/davesteele/splitcpy/tags&quot;&gt;tags&lt;/a&gt; or &lt;a href=&quot;https://github.com/davesteele/splitcpy/releases&quot;&gt;releases&lt;/a&gt; pages, which list all tags stored on the
+repository. The problem is, that the naming isn’t right for debian - the
+tar file name just consists of &amp;lt;version&amp;gt;.tar.gz. The ‘filenamemangle’
+option remaps the GitHub tar name to one including the project name, before
+storing the tar locally.&lt;/p&gt;
+
+&lt;p&gt;This is actually not good enough, as it stands, to work in a git-buildpackage
+environment. The final glob should be more specific, to match only against the
+branch holding the ‘upstream’ (that is, the non-debian) code branch.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://wiki.debian.org/debian/watch#Cryptographic_signature_verification&quot;&gt;Typical guidance&lt;/a&gt; for specifying the signature url, using the pgpsigurlmangle
+option, tells how to point to the file when it is stored in the same directory
+as the tar, with an appended “.asc”:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;opts=pgpsigurlmangle=s/$/.asc/ ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-(.+)\.tar\.gz
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Unfortunately, it is not practical to store the signature on the GitHub tags/release
+pages.&lt;/p&gt;
+
+&lt;p&gt;I stored the signatures in a dedicated &lt;a href=&quot;https://github.com/davesteele/splitcpy/tree/signatures&quot;&gt;signatures&lt;/a&gt; branch, and used a
+&lt;a href=&quot;https://raw.githubusercontent.com/davesteele/splitcpy/debian/debian/watch&quot;&gt;custom&lt;/a&gt; ‘pgpsigurlmangle’ definition to point to a raw version of the
+&lt;a href=&quot;https://raw.githubusercontent.com/davesteele/splitcpy/signatures/splitcpy-0.1.tar.gz.asc&quot;&gt;appropriate signature&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/splitcpy-$1\.tar\.gz/,\
+pgpsigurlmangle=s/github.com/raw.githubusercontent.com/;\
+s/archive\/master/signatures/;\
+s/([^\/]+)\.tar\.gz/splitcpy-$1\.tar\.gz/;\
+s/$/.asc/ \
+ https://github.com/davesteele/splitcpy/tags .+master/(\d[\d\.]*)\.tar\.gz
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;A couple things to note here:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;That is a single, continued line.&lt;/li&gt;
+  &lt;li&gt;There are two white space occurances in that line, separating the defninition.
+into an option specification, a tar listing page url, and tar search glob.&lt;/li&gt;
+  &lt;li&gt;The two options defined in the ‘opts’ spec are separated by a comma.&lt;/li&gt;
+  &lt;li&gt;The multiple rules in the pgpsigurlmangle definition are separated by
+semicolons.&lt;/li&gt;
+  &lt;li&gt;There are four replacement rules defined for the signature url:
+    &lt;ul&gt;
+      &lt;li&gt;The first one replaces the url site name with the GitHub ‘raw’ host.&lt;/li&gt;
+      &lt;li&gt;The second one points to the right branch.&lt;/li&gt;
+      &lt;li&gt;The third one fixes the file name.&lt;/li&gt;
+      &lt;li&gt;The fourth one adds the ‘asc’ extension.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;I’m using ‘master’ as the git-buildpackage ‘upstream’ branch.&lt;/li&gt;
+  &lt;li&gt;Occurrences of ‘davesteele’ and ‘splitcpy’ will need to be replaced for
+other instances.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The key to be used to verify the tar file must be stored under the debian
+directory.
+Some &lt;a href=&quot;http://debian-administration.org/users/dkg/weblog/106&quot;&gt;older announcements&lt;/a&gt; state that the key is stored in
+&lt;em&gt;debian/upstream-signing-key.pgp&lt;/em&gt;. Current documentation says that a binary key
+can be stored in &lt;em&gt;debian/upstream/signing-key.pgp&lt;/em&gt;, or an ascii armored one in
+&lt;em&gt;debian/upstream/signing-key.asc&lt;/em&gt;. All currently work, but support for the
+first form will be eventually removed.&lt;/p&gt;
+
+&lt;p&gt;Also, the key can be replaced with a keyring for team project support.&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 02 May 2015 17:44:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/</guid>
+        
+        
+        <category>development</category>
+        
+      </item>
+    
+      <item>
+        <title>The Best VPN Service is a VPS</title>
+        <description>&lt;p&gt;I felt the need for a &lt;a href=&quot;https://en.wikipedia.org/wiki/Virtual_private_network&quot;&gt;VPN&lt;/a&gt; capability for use on untrusted mobile Wifi
+nodes.&lt;/p&gt;
+
+&lt;p&gt;Commercial VPN services are plentiful, and &lt;a href=&quot;http://lifehacker.com/5935863/five-best-vpn-service-providers&quot;&gt;cheap enough&lt;/a&gt;, but I believe
+I’ve found a better option for my purposes.&lt;/p&gt;
+
+&lt;p&gt;At the time of this writing, there are &lt;a href=&quot;https://www.digitalocean.com/pricing/&quot;&gt;several&lt;/a&gt; &lt;a href=&quot;https://www.linode.com/pricing&quot;&gt;options&lt;/a&gt; for personal
+&lt;a href=&quot;http://en.wikipedia.org/wiki/Virtual_private_server&quot;&gt;VPS&lt;/a&gt; instances priced in the $5/TB/month range. That’s more than enough
+bandwidth for the purpose, and cheaper than the electricity bill
+to run a personal server. Once this is set up, you have a super-cheap VPN
+with no advertising or connection restrictions, with logging under your
+control, plus a server available for other purposes, as well.&lt;/p&gt;
+
+&lt;p&gt;But what about the bother of setting up a VPN server? Well, here’s a &lt;a href=&quot;https://raw.githubusercontent.com/davesteele/server-setup-scripts/master/pptpd/setup-pptp.sh&quot;&gt;script&lt;/a&gt;
+that will automatically install and configure a PPTP service. 
+It is possible to sign up with a VPS vendor, spin up a server, and get a
+working VPN in about 10 minutes.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/sh&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# setup-pptpd.sh&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# This will request a CHAP password.&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# The iptables-persistent install may query - say &#39;y&#39;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Once complete, there are opportunities to tighten things up in&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# /etc/ppp/chap-secrets.&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#&lt;/span&gt;
+
+apt-get -y update
+apt-get -y install pptpd
+apt-get -y install iptables-persistent
+apt-get -y install vim
+
+&lt;span class=&quot;c&quot;&gt;#set username and password&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;grep -q CONFIGURED /etc/ppp/chap-secrets ;
+&lt;span class=&quot;k&quot;&gt;then
+  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;CHAP is configured already&quot;&lt;/span&gt;;
+&lt;span class=&quot;k&quot;&gt;else
+  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; -n &lt;span class=&quot;s2&quot;&gt;&quot;Enter CHAP password: &quot;&lt;/span&gt;;
+  &lt;span class=&quot;nb&quot;&gt;read &lt;/span&gt;pw;
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;# CONFIGURED&quot;&lt;/span&gt; &amp;gt;&amp;gt;/etc/ppp/chap-secrets;
+  &lt;span class=&quot;c&quot;&gt;# Note that this set a password valid from and to all hosts&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;* * &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$pw&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; *&quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/ppp/chap-secrets;
+&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;#set the pptpd address&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;grep -q 10.0.0.1 /etc/pptpd.conf ;
+&lt;span class=&quot;k&quot;&gt;then
+  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;pptpd is configured already&quot;&lt;/span&gt;;
+&lt;span class=&quot;k&quot;&gt;else
+  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;localip 10.0.0.1&quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/pptpd.conf
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;localip 10.0.0.100-200&quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/pptpd.conf
+&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;#set the dns address&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;grep -q 8.8.8.8 /etc/ppp/pptpd-options ;
+&lt;span class=&quot;k&quot;&gt;then
+  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;dns is configured already&quot;&lt;/span&gt;;
+&lt;span class=&quot;k&quot;&gt;else
+  &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ms-dns 8.8.8.8&quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/ppp/pptpd-options
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ms-dns 8.8.4.4&quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/ppp/pptpd-options
+&lt;span class=&quot;k&quot;&gt;fi
+
+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;net.ipv4.ip_forward&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1 &amp;gt;/etc/sysctl.d/ip_forward.conf
+
+/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables-save &amp;gt;/etc/iptables/rules.v4
+
+sysctl -p /etc/sysctl.d/ip_forward.conf
+/etc/init.d/pptpd restart
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The script was developed for Debian ‘wheezy’, but should work on any
+Debian-derivative. Even if it doesn’t run successfully to completion on
+your distribution, it can serve as a highly-structure howto for manual
+installation.&lt;/p&gt;
+
+&lt;p&gt;The most up-to-date version of this script is available &lt;a href=&quot;https://github.com/davesteele/server-setup-scripts/blob/master/pptpd/setup-pptp.sh&quot;&gt;on github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;On the client side, set up a PPTP connection to the IP address of the server,
+using the CHAP password given to the script. The user name is not important.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 30 Oct 2014 18:17:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/administration/2014/10/30/the-best-vpn-service-is-a-vps/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/administration/2014/10/30/the-best-vpn-service-is-a-vps/</guid>
+        
+        
+        <category>administration</category>
+        
+      </item>
+    
+      <item>
+        <title>Lightweight Server Configuration CM</title>
+        <description>&lt;p&gt;My personal data is generally covered. Most of the time, it is either hosted
+somewhere else (github, Docs), or it is backed up using a straightforward
+process (Dropbox, NAS). Data rides through a crash or system upgrade just
+fine.&lt;/p&gt;
+
+&lt;p&gt;System configuration is another matter. Recovery after recovery, I’ve looked
+into mechanisms for a system configuration backup strategy that meets my needs.
+Each time, I’ve come to the conclusion that manual recovery is the best option
+I could find.&lt;/p&gt;
+
+&lt;p&gt;The traditional tools are just too heavyweight for me. Puppet, Chef, SaltStack,
+CFEngine … I’ve tried them all. Each requires a learning curve to get started,
+and each usually introduces topics I am just not interested in (masters,
+slaves, keys, dependencies, … Ruby). I need the capability rarely enough
+that there is relearning required with each session. For each, generating
+configuration recipes felt too much like software development. It should be
+easier. Or at least it needs to be easier for me.&lt;/p&gt;
+
+&lt;p&gt;At Ohio LinuxFest last weekend, &lt;a href=&quot;http://people.connexer.com/~roberto/main&quot;&gt;Roberto Sánchez&lt;/a&gt; did a &lt;a href=&quot;http://people.connexer.com/~roberto/documents/olf2014/using_git_to_manage_your_systems_configuration.pdf&quot;&gt;presentation&lt;/a&gt;
+that ended up being about &lt;a href=&quot;https://joeyh.name/code/etckeeper/&quot;&gt;etckeeper&lt;/a&gt;. This is definitely a step in the
+right direction for me. The one thing I’d say is that it may focus more on
+managing changes for potential rollback. I just want to define and restore
+quickly. It also would mix my services configurations together. I’d like to
+keep them separate.&lt;/p&gt;
+
+&lt;p&gt;Serendipitously, Reddit r/programming last week had a &lt;a href=&quot;http://www.reddit.com/r/linux/comments/1f7sh4/gnu_stow_manage_your_usrlocal_with_ease/&quot;&gt;reference&lt;/a&gt; to the use
+of &lt;a href=&quot;http://www.gnu.org/software/stow/&quot;&gt;GNU stow&lt;/a&gt; for use in managing/backing up home directory configuration
+files. I could see this plus etckeeper solving my problem fine. Stow serves as
+a service-specific repository of system configuration, and etckeeper places
+it and /etc into a git repository.&lt;/p&gt;
+
+&lt;p&gt;But, for the moment I’ve settled on an even easier path - &lt;a href=&quot;https://github.com/davesteele/server-setup-scripts/blob/master/pptpd/setup-pptp.sh&quot;&gt;shell&lt;/a&gt;
+&lt;a href=&quot;https://github.com/davesteele/server-setup-scripts/blob/master/tor/setup-tor-relay.sh&quot;&gt;scripts&lt;/a&gt;. They live in an environment that I won’t forget before the next
+system crash. Generating scripts is only about as hard as writing a setup
+howto. Configuration is stored as edits rather than complete (version
+specific) files.&lt;/p&gt;
+
+&lt;p&gt;P.S. - Another option, &lt;a href=&quot;http://cloudinit.readthedocs.org/en/latest/&quot;&gt;cloud-init&lt;/a&gt;, is a strong contender. The format is
+simple enough, and many services let you use it to define configuration at
+VPS creation time. But, it still is yet another format, it addresses a
+cross-distribution compatibility problem that I just don’t care about, and
+it is not available everywhere (and would therefore need to be bootstrapped).
+I’ll stick to scripts for now.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 26 Oct 2014 18:17:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/administration/2014/10/26/lightweight-server-configuring/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/administration/2014/10/26/lightweight-server-configuring/</guid>
+        
+        
+        <category>administration</category>
+        
+      </item>
+    
+      <item>
+        <title>A &#39;Software Critique&#39; Taxonomy</title>
+        <description>&lt;image src=&quot;/images/2014-10-04-a-software-critique-taxonomy/critique-taxonomy.jpg&quot; width=&quot;800&quot; /&gt;
+
+&lt;p&gt;You should strive for the upper right, but, for my part, I’m fine if you can
+make it to the top half of the chart.&lt;/p&gt;
+
+&lt;p&gt;Just, please, no crickets.&lt;/p&gt;
+</description>
+        <pubDate>Sat, 04 Oct 2014 19:59:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/debian/2014/10/04/a-software-critique-taxonomy/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/debian/2014/10/04/a-software-critique-taxonomy/</guid>
+        
+        
+        <category>debian</category>
+        
+      </item>
+    
+      <item>
+        <title>Anatomy of a GPG Key</title>
+        <description>&lt;p&gt;I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool ‘gpg’. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were tangential to the particular procedure, and therefore not covered where I needed it to be.&lt;/p&gt;
+
+&lt;p&gt;For me, the key to understanding how to work with gpg was to understand the packet structure of the underlying OpenPGP Message Format (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880&quot;&gt;RFC4880&lt;/a&gt;), which defines how gpg messages, signatures, and key material are stored. The goal of this post is to grease the skids for the next guy, by tying the key storage format to the RFC definition, and to the associated gpg commands and parameters.&lt;/p&gt;
+
+&lt;h3 id=&quot;tldr&quot;&gt;TL;DR&lt;/h3&gt;
+
+&lt;p&gt;Here are some takeaways I wish I had going into this:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Most key parameters are stored in the self signature. That means they can be changed at will by the key owner without affecting the status of external key signatures.&lt;/li&gt;
+  &lt;li&gt;Subkeys need only be self-signed (which is automatic). Trust from external signatures is provided transitively.&lt;/li&gt;
+  &lt;li&gt;(Edit - 19 Apr 2015) gpg &lt;a href=&quot;http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM&quot;&gt;automatically uses the newest subkey&lt;/a&gt; to sign/encrypt.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;some-terms&quot;&gt;Some Terms&lt;/h2&gt;
+&lt;p&gt;It’s best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let’s be clear on a couple of terms:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Primary key vs. subkey - A PGP key certificate may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The primary key is the top level key. It is often referred to elsewhere as the master key.&lt;/li&gt;
+  &lt;li&gt;Public key - This post is working with the published version of the key certificate. Therefore, only public keys are described (the ones that encrypt and verify signatures). Your local version of your key also includes the associated private keys (for decryption and signature creation), to define the key pair.&lt;/li&gt;
+  &lt;li&gt;Key certificate - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word ‘key’. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP ‘certificate’ that defines a suite of information associated with a key or set of keys. I will use the term “key/public key” and “key certificate” to distinguish between the possible interpretations. Key pairs and private keys will not come up here. We will be focusing on the key certificate.&lt;/li&gt;
+  &lt;li&gt;Key ID - A hexadecimal string that identifies a key (usually the primary key).&lt;/li&gt;
+  &lt;li&gt;UID, or User ID - The name and email of the user is stored in one or more UID entries, stored under the Primary key.&lt;/li&gt;
+  &lt;li&gt;Certification vs. signing - ‘Signing’ is an action against arbitrary data. ‘Certification’ is the signing of another key. Ironically, the act of certifying a key is universally called “key signing”. Just embrace the contradiction.&lt;/li&gt;
+  &lt;li&gt;Key packet - ‘Packet’ is the term used by RFC4880 to identify a component of the message/certificate format. Messages and keys certificates are made up of packets and subpackets of various types.&lt;/li&gt;
+  &lt;li&gt;Trust, Validity, and the Web of Trust - gpg uses a model of ‘trust’ of users (defined locally-only using the ‘trust’ edit command) and reported ‘validity’
+of keys (defined by key signatures/certificates). The combination creates a “Web of Trust”, starting with locally-defined trust statements about users, and passing through multiple levels of key-signature-defined validity links to other keys. Gpg uses the web of trust to determine if a key is acceptable for use without warning the user. There is a writeup in the &lt;a href=&quot;https://www.gnupg.org/gph/en/manual/x334.html#AEN384&quot;&gt;GNU Privacy Handbook&lt;/a&gt; that covers the concepts well enough if you have the terms straight. Documentation often uses the word ‘trust’ for both ‘trust’ and ‘validity’. I mention all of this only to note that this document is concerned with ‘validity’.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;my-key&quot;&gt;My Key&lt;/h2&gt;
+
+&lt;p&gt;Following is an annotated and edited dump of my key certificate, originally generated with:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;gpg -a --export &quot;David Steele&quot; | gpg --list-packets --verbose
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;where “David Steele” matches a UID for my key. Substitute your name or primary key id to see your key certificate. Add the ‘--debug 0x02’ option to the second gpg invocation to see the entire contents, including the binary key data (thanks &lt;a href=&quot;http://superuser.com/questions/696941/human-readable-dump-of-gpg-public-key&quot;&gt;superuser.com&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Note that there are &lt;a href=&quot;#OtherTools&quot;&gt;other tools&lt;/a&gt; which provide more information or features for this task. I use gpg as the least common denominator tool.&lt;/p&gt;
+
+&lt;p&gt;This is a pretty standard published key certificate, which is to say that it contains a primary certification/signing public key, with a public subkey dedicated to encryption (GPG always creates a separate encryption subkey to the primary, to avoid &lt;a href=&quot;http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key&quot;&gt;problems&lt;/a&gt;). I also have an extra public signing subkey with an expiration date, for a couple of &lt;a href=&quot;https://wiki.debian.org/Subkeys#Why.3F&quot;&gt;reasons&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I’ve linked aspects of the key dump to explanation paragraphs below.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;# &lt;a href=&quot;#PrimaryKey&quot;&gt;Primary key&lt;/a&gt;&lt;br /&gt;
+:public key &lt;a href=&quot;#PacketType&quot;&gt;packet&lt;/a&gt;:&lt;br /&gt;
+    &lt;a href=&quot;#PacketVer&quot;&gt;version 4&lt;/a&gt;, &lt;a href=&quot;#KeyAlg&quot;&gt;algo 1&lt;/a&gt;, created &lt;a href=&quot;#DatesExpir&quot;&gt;1281838967&lt;/a&gt;, expires 0&lt;br /&gt;
+    pkey[0]: [4096 bits]&lt;br /&gt;
+    pkey[1]: [17 bits]&lt;br /&gt;
+    &lt;a href=&quot;#KeyId&quot;&gt;keyid: 8A3171EF366150CE&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;# &lt;a href=&quot;#UID1&quot;&gt;User ID #1&lt;/a&gt;&lt;br /&gt;
+:user ID packet: “David Steele &amp;lt;daves@users.sourceforge.net&amp;gt;”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;# &lt;a href=&quot;#EndorsingSigs&quot;&gt;Endorsing Signatures&lt;/a&gt;&lt;br /&gt;
+# &lt;a href=&quot;#SelfSig&quot;&gt;Self Signature&lt;/a&gt;&lt;br /&gt;
+:signature packet: algo 1, keyid 8A3171EF366150CE&lt;br /&gt;
+    version 4, created 1281838967, md5len 0, &lt;a href=&quot;#SigClass&quot;&gt;sigclass 0x13&lt;/a&gt;&lt;br /&gt;
+    &lt;a href=&quot;#DigestAlgo&quot;&gt;digest algo 8&lt;/a&gt;, begin of digest f9 34&lt;br /&gt;
+    &lt;a href=&quot;#SigSubpacket&quot;&gt;hashed subpkt&lt;/a&gt; 2 len 4 (sig created 2010-08-15)&lt;br /&gt;
+    hashed subpkt 27 len 1 (&lt;a href=&quot;#KeyFlags&quot;&gt;key flags&lt;/a&gt;: 03)&lt;br /&gt;
+    hashed subpkt 11 len 4 (&lt;a href=&quot;#PrefSymAlgos&quot;&gt;pref-sym-algos&lt;/a&gt;: 9 8 7 3)&lt;br /&gt;
+    hashed subpkt 21 len 4 (&lt;a href=&quot;#PrefHashAlgos&quot;&gt;pref-hash-algos&lt;/a&gt;: 10 9 8 11)&lt;br /&gt;
+    hashed subpkt 22 len 4 (pref-zip-algos: 2 3 1 0)&lt;br /&gt;
+    hashed subpkt 30 len 1 (&lt;a href=&quot;#Features&quot;&gt;features&lt;/a&gt;: 01)&lt;br /&gt;
+    hashed subpkt 23 len 1 (&lt;a href=&quot;#KeyServPrefs&quot;&gt;key server preferences&lt;/a&gt;: 80)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)&lt;br /&gt;
+    data: [4092 bits]&lt;br /&gt;
+# &lt;a href=&quot;#ExternalSigs&quot;&gt;External Signatures&lt;/a&gt;&lt;br /&gt;
+:signature packet: algo 17, keyid F7EBEE8EB7982329&lt;br /&gt;
+    version 4, created 1284226833, md5len 0, sigclass 0x10&lt;br /&gt;
+    digest algo 2, begin of digest fe c2&lt;br /&gt;
+    hashed subpkt 2 len 4 (sig created 2010-09-11)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID F7EBEE8EB7982329)&lt;br /&gt;
+    data: [160 bits]&lt;br /&gt;
+    data: [157 bits]&lt;br /&gt;
+:signature packet: algo 17, keyid DABDF1E4C88B0C9C&lt;br /&gt;
+    version 4, created 1349019663, md5len 0, sigclass 0x13&lt;br /&gt;
+    digest algo 2, begin of digest 1b fd&lt;br /&gt;
+    hashed subpkt 2 len 4 (sig created 2012-09-30)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID DABDF1E4C88B0C9C)&lt;br /&gt;
+    data: [160 bits]&lt;br /&gt;
+    data: [158 bits]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;# User ID #2&lt;br /&gt;
+:user ID packet: “David Steele &amp;lt;dsteele@gmail.com&amp;gt;”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;:signature packet: algo 1, keyid 8A3171EF366150CE&lt;br /&gt;
+    version 4, created 1322364912, md5len 0, sigclass 0x13&lt;br /&gt;
+    digest algo 2, begin of digest e6 05&lt;br /&gt;
+    hashed subpkt 2 len 4 (sig created 2011-11-27)&lt;br /&gt;
+    hashed subpkt 27 len 1 (key flags: 03)&lt;br /&gt;
+    hashed subpkt 11 len 5 (pref-sym-algos: 9 8 7 3 2)&lt;br /&gt;
+    hashed subpkt 21 len 5 (pref-hash-algos: 8 2 9 10 11)&lt;br /&gt;
+    hashed subpkt 22 len 3 (pref-zip-algos: 2 3 1)&lt;br /&gt;
+    hashed subpkt 30 len 1 (features: 01)&lt;br /&gt;
+    hashed subpkt 23 len 1 (key server preferences: 80)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)&lt;br /&gt;
+    data: [4096 bits]&lt;br /&gt;
+:signature packet: algo 17, keyid F7EBEE8EB7982329&lt;br /&gt;
+    version 4, created 1322413422, md5len 0, sigclass 0x10&lt;br /&gt;
+    digest algo 2, begin of digest b4 2e&lt;br /&gt;
+    hashed subpkt 2 len 4 (sig created 2011-11-27)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID F7EBEE8EB7982329)&lt;br /&gt;
+    data: [157 bits]&lt;br /&gt;
+    data: [159 bits]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;# &lt;a href=&quot;#EncryptSubkey&quot;&gt;Encryption subkey&lt;/a&gt;&lt;br /&gt;
+:public sub key packet:&lt;br /&gt;
+    version 4, algo 1, created 1281839112, expires 0&lt;br /&gt;
+    pkey[0]: [4096 bits]&lt;br /&gt;
+    pkey[1]: [17 bits]&lt;br /&gt;
+    keyid: 2DC87C4C0D929394&lt;br /&gt;
+:signature packet: algo 1, keyid 8A3171EF366150CE&lt;br /&gt;
+    version 4, created 1281839112, md5len 0, sigclass 0x18&lt;br /&gt;
+    digest algo 8, begin of digest 87 3b&lt;br /&gt;
+    hashed subpkt 2 len 4 (sig created 2010-08-15)&lt;br /&gt;
+    hashed subpkt 27 len 1 (key flags: 0C)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)&lt;br /&gt;
+    data: [4096 bits]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;# &lt;a href=&quot;#SigningSubkey&quot;&gt;Signing subkey&lt;/a&gt;&lt;br /&gt;
+:public sub key packet:&lt;br /&gt;
+    version 4, algo 1, created 1408105689, expires 0&lt;br /&gt;
+    pkey[0]: [4096 bits]&lt;br /&gt;
+    pkey[1]: [17 bits]&lt;br /&gt;
+    keyid: 627EBB290A817A82&lt;br /&gt;
+:signature packet: algo 1, keyid 8A3171EF366150CE&lt;br /&gt;
+    version 4, created 1408105689, md5len 0, sigclass 0x18&lt;br /&gt;
+    digest algo 2, begin of digest 62 1d&lt;br /&gt;
+    hashed subpkt 2 len 4 (sig created 2014-08-15)&lt;br /&gt;
+    hashed subpkt 27 len 1 (key flags: 02)&lt;br /&gt;
+    hashed subpkt 9 len 4 (key expires after 5y0d0h0m)&lt;br /&gt;
+    subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)&lt;br /&gt;
+    subpkt 32 len 540 (signature: v4, class 0x19, algo 1, digest algo 2)&lt;br /&gt;
+    data: [4094 bits]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;a-nameprimarykeyaprimary-key&quot;&gt;&lt;a name=&quot;PrimaryKey&quot;&gt;&lt;/a&gt;Primary Key&lt;/h2&gt;
+
+&lt;p&gt;The first packet in a published OpenPGP/gpg key certificate is the primary signing/certification public key. The overall key certificate is referenced by the Key ID of this key.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namepackettypeapacket-type&quot;&gt;&lt;a name=&quot;PacketType&quot;&gt;&lt;/a&gt;Packet Type&lt;/h3&gt;
+
+&lt;p&gt;The ‘types’ of packets in an OpenPGP key certificate or message are defined in Section 5 of the RFC (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5&quot;&gt;RFC4880-5&lt;/a&gt;). The primary signing public key uses a packet with a ‘tag’ value of 6 (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.5.1.1&quot;&gt;RFC4880-5.5.1.1&lt;/a&gt;). The tag values are not shown in the gpg key dump - just the resulting type.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namepacketverapacket-version&quot;&gt;&lt;a name=&quot;PacketVer&quot;&gt;&lt;/a&gt;Packet Version&lt;/h3&gt;
+
+&lt;p&gt;The RFC defines both ‘version 3’ and ‘version 4’ packet types. For key packets, a modern gpg will only create version 4 packets (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.5.2&quot;&gt;RFC4880-5.5.2&lt;/a&gt;). You should avoid working with version 3 keys - there are known weaknesses with the format.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namekeyalgakey-algorithm&quot;&gt;&lt;a name=&quot;KeyAlg&quot;&gt;&lt;/a&gt;Key Algorithm&lt;/h3&gt;
+
+&lt;p&gt;The “algo” parameter in the dump identifies the encryption algorithm associated with the key packet. The list of required and possible algorithms is listed in the  “Constants” section of the RFC (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-9.1&quot;&gt;RFC4880-9.1&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;That section states that ‘DSA’ (for signing) and ‘Elgamal’ (for encryption) can be expected to be the most available across implementations and versions. My key uses RSA (encrypt or sign), which is the current default in gpg:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ gpg --gen-key
+gpg (GnuPG) 1.4.18; Copyright (C) 2014 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+Your selection? 1
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (2048) 4096
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The information stored for the key (pkey[0] and pkey[1] in this case) is dependent on the algorithm.&lt;/p&gt;
+
+&lt;p&gt;The length of the key is important. Mine is 4096 bits, based on the current &lt;a href=&quot;http://keyring.debian.org/creating-key.html&quot;&gt;recommendation&lt;/a&gt; from Debian (as an exercise, you can verify that the key listed in that document is RSA).&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namedatesexpiradates-and-expiration&quot;&gt;&lt;a name=&quot;DatesExpir&quot;&gt;&lt;/a&gt;Dates and Expiration&lt;/h3&gt;
+
+&lt;p&gt;The dates in the key certificate dump are &lt;a href=&quot;http://en.wikipedia.org/wiki/Unix_time&quot;&gt;Unix epochs&lt;/a&gt;. Convert to human-readable with:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ date -d @1281838967
+Sat Aug 14 22:22:47 EDT 2010
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The ‘expires’ value of ‘0’ means that the key itself has no expiration date. Note that we will find out shortly that there are multiple ways to express key expiration. This mechanism is part of the key definition - changing it would change the Key ID for the Primary key, which would in turn invalidate all signatures for the key certificate.&lt;/p&gt;
+
+&lt;p&gt;Perhaps for that reason, gpg does not use this field to define the expiration date for a generated key. It is expressed in the key self-signature, as shown later.&lt;/p&gt;
+
+&lt;p&gt;There has been a fair amount of mulling about the right strategy for key expiration. My sense is that the consensus is that opinion on expiring Primary keys is mixed, encryption subkeys should have no expiration, and signing subkeys should.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namekeyidakey-id&quot;&gt;&lt;a name=&quot;KeyId&quot;&gt;&lt;/a&gt;Key ID&lt;/h3&gt;
+
+&lt;p&gt;The RFC defines a 160-bit ‘fingerprint’ for a key, which is typically expressed as a hexadecimal string, divided into 10 4-character groups (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-12.2&quot;&gt;rfc4880-12.2&lt;/a&gt;). When validating keys for key signing, the fingerprint is used.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ gpg --fingerprint &quot;David Steele&quot;
+pub   4096R/366150CE 2010-08-15
+      Key fingerprint = AE0D BF5A 92A5 ADE4 9481  BA6F 8A31 71EF 3661 50CE
+uid                  David Steele &amp;lt;dsteele@gmail.com&amp;gt;
+uid                  David Steele &amp;lt;daves@users.sourceforge.net&amp;gt;
+sub   4096R/0D929394 2010-08-15
+sub   4096R/0A817A82 2014-08-15 [expires: 2019-08-14]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The key certificate dump is expressing this fingerprint as a ‘key id’ (or ‘long key id’), taking the last 16 characters of that fingerprint (again, &lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-12.2&quot;&gt;rfc4880-12.2&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id (‘short key id’), shown on the ‘pub’ line for the fingerprint call above. It is using the definition of key id from section 3.3 (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-3.3&quot;&gt;rfc4880-3.3&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Going one step further down the rabbit hole, in some contexts this value needs to have “0x” prepended (‘0x366150CE’). I’ve run across this in a key server search function.&lt;/p&gt;
+
+&lt;p&gt;The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and many consider this a &lt;a href=&quot;https://www.debian-administration.org/users/dkg/weblog/105&quot;&gt;terrible idea&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The Key ID of the Primary public key (‘366150CE’ in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.&lt;/p&gt;
+
+&lt;p&gt;The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is changed, but is unaffected by any changes in any other packets.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-nameuid1auser-id&quot;&gt;&lt;a name=&quot;UID1&quot;&gt;&lt;/a&gt;User ID&lt;/h2&gt;
+
+&lt;p&gt;The user ID packet defines a name/email address that is associated with the key certificate (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.11&quot;&gt;RFC4880-5.11&lt;/a&gt;). The gpg program will store it in &lt;a href=&quot;http://tools.ietf.org/html/rfc2822#section-3.4&quot;&gt;RFC2822&lt;/a&gt; format (“David Steele &amp;lt;dsteele@gmail.com&amp;gt;”) based on the name and email you provide it when you generated the key.&lt;/p&gt;
+
+&lt;p&gt;The key certificate can have more than one user id. For instance, if you want to use the key certificate with more than one email account, multiple user ids would be needed.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-nameendorsingsigsendorsing-signatures&quot;&gt;&lt;a name=&quot;EndorsingSigs&quot;&gt;&lt;/a&gt;Endorsing Signatures&lt;/h3&gt;
+
+&lt;p&gt;A user id packet is followed by one or more ‘signature packets’.&lt;/p&gt;
+
+&lt;p&gt;This is a key point - the key signature covers the contents of the primary key packet and the last-encountered user id packet. So, the signature is a certification by the signer that the user identified in the user id is who he says he is, and that he claims ownership of the key.&lt;/p&gt;
+
+&lt;p&gt;A key signature only covers one user id. Separate signatures are needed if certification is desired for multiple user ids.&lt;/p&gt;
+
+&lt;p&gt;Signatures are identified by the ‘signature type’, shown as ‘sigclass’ in the packet certificate dump. Types/classes 0x10 through 0x13 are key signatures (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2.1&quot;&gt;RFC4880-5.2.1&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Key signatures can be created using the ‘sign-key’ command in the key edit mode.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-nameselfsigself-signature&quot;&gt;&lt;a name=&quot;SelfSig&quot;&gt;&lt;/a&gt;Self Signature&lt;/h3&gt;
+
+&lt;p&gt;The ‘self signature’ is a key signature generated by the primary key being signed. It serves as verification that the user id is valid for that key. For version 4 packets, it also provides a number of parameters to be associated with the key/user id pair (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2&quot;&gt;RFC4880-5.2&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Self signatures are generated automatically by gpg, as keys are generated and as parameters are changed.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namesigclasssignature-class&quot;&gt;&lt;a name=&quot;SigClass&quot;&gt;&lt;/a&gt;Signature Class&lt;/h3&gt;
+
+&lt;p&gt;Again, the key signature type, or ‘sigclass’, identifies the signature as a key signature. It also claims to provide a level of assurance of that certification, from “does not make any particular assertion” to “substantial verification of the claim of identity” (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2&quot;&gt;RFC4880-5.2&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;It appears that the levels are largely ignored for key validation purposes. The Debian key signing guidelines recommends using ‘&lt;a href=&quot;https://www.debian.org/events/keysigning&quot;&gt;casual&lt;/a&gt;’, which I believe maps to 0x12. However, the RFC states:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Most OpenPGP implementations make their “key signatures” as 0x10
+certifications.  Some implementations can issue 0x11-0x13
+certifications, but few differentiate between the types.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I have both 0x10 and 0x13 key signatures in my key certificate.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namedigestalgodigest-algorithm&quot;&gt;&lt;a name=&quot;DigestAlgo&quot;&gt;&lt;/a&gt;Digest Algorithm&lt;/h3&gt;
+
+&lt;p&gt;A signature is actually a cryptographic operation over a hash of the entity being signed. The list of digest
+algorithms (‘hash’ and ‘digest’ are interchangeable) are in &lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-9.4&quot;&gt;RFC4880-9.4&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Note that MD5 (digest algo 1) is &lt;a href=&quot;https://www.gnupg.org/faq/weak-digest-algos.html#sec-3&quot;&gt;broken&lt;/a&gt;. SHA-1 (digest algo 2) is the standard, but is showing signs of age. You can set the signature
+preferences using the &lt;a href=&quot;https://www.gnupg.org/documentation/manuals/gnupg/OpenPGP-Options.html#index-personal_002ddigest_002dpreferences-280&quot;&gt;personal-digest-preferences&lt;/a&gt; and &lt;a href=&quot;https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-cert_002ddigest_002dalgo-324&quot;&gt;cert-digest-algo&lt;/a&gt; parameters in ~/.gnupg/gpg.conf.
+&lt;a href=&quot;http://keyring.debian.org/creating-key.html&quot;&gt;Debian recommends&lt;/a&gt; that you set this to SHA256.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-namesigsubpacketendorsing-signature-subpackets&quot;&gt;&lt;a name=&quot;SigSubpacket&quot;&gt;&lt;/a&gt;“Endorsing Signature” Subpackets&lt;/h3&gt;
+
+&lt;p&gt;Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2&quot;&gt;RFC4880-5.2&lt;/a&gt;). That means such information is validated by the primary key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in &lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2.3.1&quot;&gt;RFC4880-5.2.3.1&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;a-namekeyflagskey-flag-subpacket&quot;&gt;&lt;a name=&quot;KeyFlags&quot;&gt;&lt;/a&gt;Key Flag Subpacket&lt;/h4&gt;
+
+&lt;p&gt;I’ve said a couple of times now that the primary key is used for signing, and there is a separate encryption subkey. Well, it is the ‘keyflags’ field that defines these roles for the keys (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2.3.21&quot;&gt;RFC4880-5.2.3.21&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;The flag data is reflected in the output of gpg when you invoke --edit-key:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ gpg --edit-key &quot;David Steele&quot;
+gpg (GnuPG) 1.4.18; Copyright (C) 2014 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Secret key is available.
+
+pub  4096R/366150CE  created: 2010-08-15  expires: never       usage: SC  
+                     trust: ultimate      validity: ultimate
+sub  4096R/0D929394  created: 2010-08-15  expires: never       usage: E   
+sub  4096R/0A817A82  created: 2014-08-15  expires: 2019-08-14  usage: S   
+[ultimate] (1). David Steele &amp;lt;dsteele@gmail.com&amp;gt;
+[ultimate] (2)  David Steele &amp;lt;daves@users.sourceforge.net&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The ‘usage’ characters map to the key flags as follows:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Flag&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;gpg character&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x01&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;“C”&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Key Certification&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x02&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;“S”&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Sign Data&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x04&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;“E”&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Encrypt Communications&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x08&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;“E”&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Encrypt Storage&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x10&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Split key&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x20&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;“A”&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Authentication&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;0x80&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Held by more than one person&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;If you look in my key certificate dump, you’ll see that my primary key’s key flag is 0x03, which is Key Certification plus Sign Data. The encryption subkey is 0x0C, which is Encrypt Communications plus Encrypt Storage. The signing subkey is 0x02, or Sign Data.&lt;/p&gt;
+
+&lt;p&gt;There is not much to work with on this flag, under the normal gpg mode. I don’t believe that it is editable in gpg, and the values are created automatically on key creation. Also, there is no option on subkeys to create a key which can both sign and encrypt.&lt;/p&gt;
+
+&lt;p&gt;It is possible to set these flags on creation, if you use the gpg “--expert” option along with “--gen-key”. Additional key algorithms are shown on the edit “addkey” command which permit toggling some key flags.&lt;/p&gt;
+
+&lt;h4 id=&quot;a-nameprefsymalgospreferred-symmetric-algorithms&quot;&gt;&lt;a name=&quot;PrefSymAlgos&quot;&gt;&lt;/a&gt;Preferred Symmetric Algorithms&lt;/h4&gt;
+
+&lt;p&gt;First, be aware that when you use public key algorithms, you are actually managing a symmetric encryption key, which is used to do the actual work of encrypting your message. The why of that is out of scope here.&lt;/p&gt;
+
+&lt;p&gt;This parameter is listing the algorithms a sender should use to send you encrypted material. This default list to use (as well as the list for hash and compression/zip algorithms) can be set using the &lt;a href=&quot;https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-default_002dpreference_002dlist-360&quot;&gt;default-preference-list&lt;/a&gt; parameter on the command line or ~/.gnupg/gpg.conf.&lt;/p&gt;
+
+&lt;p&gt;The defined list of algorithms is at &lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-9.2&quot;&gt;RFC4880-9.2&lt;/a&gt;. You will probably not need to work with this list.&lt;/p&gt;
+
+&lt;h4 id=&quot;a-nameprefhashalgospreferred-hash-algorithms&quot;&gt;&lt;a name=&quot;PrefHashAlgos&quot;&gt;&lt;/a&gt;Preferred Hash Algorithms&lt;/h4&gt;
+
+&lt;p&gt;The hash algorithms available are defined at &lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-9.4&quot;&gt;RFC4880-9.4&lt;/a&gt;. These are used for signatures. MD5 should definitely not be in the list. For compatibility, SHA-1 should be in the list somewhere. Note that this is not current &lt;a href=&quot;http://keyring.debian.org/creating-key.html&quot;&gt;Debian practice&lt;/a&gt; (see the section on gpg.conf).&lt;/p&gt;
+
+&lt;h4 id=&quot;a-namefeatureskey-features&quot;&gt;&lt;a name=&quot;Features&quot;&gt;&lt;/a&gt;Key Features&lt;/h4&gt;
+
+&lt;p&gt;“Features” doesn’t yet serve much purpose (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2.3.24&quot;&gt;RFC4880-5.2.3.24&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h4 id=&quot;a-namekeyservprefskey-server-preferences&quot;&gt;&lt;a name=&quot;KeyServPrefs&quot;&gt;&lt;/a&gt;Key Server Preferences&lt;/h4&gt;
+
+&lt;p&gt;The key server preferences subpacket is also a bit light (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2.3.17&quot;&gt;RFC4880-5.2.3.17&lt;/a&gt;)&lt;/p&gt;
+
+&lt;h3 id=&quot;a-nameexternalsigsexternal-key-signatures&quot;&gt;&lt;a name=&quot;ExternalSigs&quot;&gt;&lt;/a&gt;External Key Signatures&lt;/h3&gt;
+
+&lt;p&gt;Following the self signature are the externally generated key signatures. You get these when you import a copy of your key that has been signed remotely and exported by a person who is certifying your key certificate/user id. Note that I show two signatures from the same user/key, (‘F7EBEE8EB7982329’), certifying my two user id’s independently.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-nameencryptsubkeyencryption-subkey&quot;&gt;&lt;a name=&quot;EncryptSubkey&quot;&gt;&lt;/a&gt;Encryption Subkey&lt;/h2&gt;
+
+&lt;p&gt;You can see that this was created at the same time as the primary key. As mentioned previously, this is created automatically with --gen-key.&lt;/p&gt;
+
+&lt;p&gt;The parameters have already been discussed.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-namesigningsubkeysigning-subkey&quot;&gt;&lt;a name=&quot;SigningSubkey&quot;&gt;&lt;/a&gt;Signing Subkey&lt;/h2&gt;
+
+&lt;p&gt;This signing subkey was created in 2014. It, and the encryption subkey, are only self-signed. That alone allows them to inherit the trust from the top level primary keys defined by the other primary key signatures.&lt;/p&gt;
+
+&lt;p&gt;The new wrinkle in this key is an expiration subpacket on the self signature, which puts a time limit on the certification (&lt;a href=&quot;http://tools.ietf.org/html/rfc4880#section-5.2.3.6&quot;&gt;RFC4880-5.2.3.6&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;(Added - 19 Apr 2015) Note that gpg will automatically use the &lt;a href=&quot;http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM&quot;&gt;most recent signing/encryption subkey&lt;/a&gt; when the master is referenced. To force a specific key/subkey, add an
+&lt;a href=&quot;http://www.enricozini.org/2006/tips/gpg-select-subkey/&quot;&gt;exclamation mark&lt;/a&gt; after the Key ID.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-nameothertoolsother-tools&quot;&gt;&lt;a name=&quot;OtherTools&quot;&gt;&lt;/a&gt;Other Tools&lt;/h2&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://help.riseup.net/en/security/message-security/openpgp/best-practices#openpgp-key-checks&quot;&gt;hokey&lt;/a&gt; utility, from the hopenpgp-tools package, can perform a ‘lint’ operation on your certificate:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;$ hkt export-pubkeys &amp;lt;fingerprint&amp;gt; | hokey lint
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The pgpdump program provides more information in the dump, and also has a &lt;a href=&quot;http://www.pgpdump.net/&quot;&gt;web interface&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Should you have made it this far, I hope you have found this useful. Please let me know if you find any issues with the explanations.&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 20 Sep 2014 17:29:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/gpg/2014/09/20/anatomy-of-a-gpg-key/</guid>
+        
+        
+        <category>gpg</category>
+        
+      </item>
+    
+      <item>
+        <title>Notes for a Debconf Newbie</title>
+        <description>&lt;p&gt;Here are a few comments I have for my pre-first-Debconf self a month ago.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Being long past hankering for additional college-type experiences, I opted to skip the dorms, and stayed at a nearby hotel. That was probably a mistake - I think I missed a lot with that choice.&lt;/li&gt;
+  &lt;li&gt;After checking into dining options in downtown Portland, I also skipped the meal plan. I still think that was the right choice, but ended up eating lunch in the cafeteria a la carte several times, to have more chances to meet and talk.&lt;/li&gt;
+  &lt;li&gt;With so many people in the same time zone and on the same tasks, I found IRC more useful than usual, particularly the Debconf* channels. A &lt;a href=&quot;http://quassel-irc.org/&quot;&gt;Quassel&lt;/a&gt; server and &lt;a href=&quot;https://play.google.com/store/apps/details?id=com.iskrembilen.quasseldroid&quot;&gt;client&lt;/a&gt; may be worth the setup.&lt;/li&gt;
+  &lt;li&gt;Get &lt;a href=&quot;http://gobby.0x539.de/trac/&quot;&gt;gobby&lt;/a&gt; installed before your first &lt;a href=&quot;http://en.wikipedia.org/wiki/Birds_of_a_feather_%28computing%29&quot;&gt;BOF&lt;/a&gt;, and make sure you can access documents on &lt;a href=&quot;https://wiki.debian.org/gobby.debian.org&quot;&gt;gobby.debian.org&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;Don’t take it as a given that your &lt;a href=&quot;/debian/bugs/2014/09/14/installing_debian_on_an_N2830/&quot;&gt;laptop install&lt;/a&gt; will go smoothly.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt; &lt;/p&gt;
+</description>
+        <pubDate>Thu, 18 Sep 2014 19:59:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/debian/2014/09/18/notes-for-a-debconf-newbie/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/debian/2014/09/18/notes-for-a-debconf-newbie/</guid>
+        
+        
+        <category>debian</category>
+        
+      </item>
+    
+      <item>
+        <title>Installing Debian on a Celeron N2830</title>
+        <description>&lt;p&gt;These are Debian installation notes for:&lt;/p&gt;
+
+&lt;p&gt;
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;Regulatory Type&lt;/th&gt;&lt;td&gt;P28F005&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;th&gt;Marketing Name&lt;/th&gt;&lt;td&gt;Dell Inspiron 15-3531&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;th&gt;Processor&lt;/th&gt;&lt;td&gt;Celeron N2830 2.16 NHz&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/p&gt;
+
+&lt;p&gt;I don’t normally do laptops. I lean more towards the camp of having a computer available wherever you need one - especially now that those possible locations include your pocket, I don’t run across many situations that scream out for a laptop.&lt;/p&gt;
+
+&lt;p&gt;Twice now I have run into special occasions that forced exceptions to my rule. Both times I  bought the cheapest laptop I could find, swapped out the drive for an SSD Linux install, and unloaded the machine after the conference. The first time was in 2011. I recall the installation on the Toshiba Celeron 925 went smoothly. I expected last months repeat on a Dell Celeron N2830 to go as well.&lt;/p&gt;
+
+&lt;p&gt;Well, it didn’t. I list the particular issues here, with my work-arounds, in case it might help someone else.&lt;/p&gt;
+
+&lt;p&gt;BTW, the computer works fine once the installation problems are worked out. I do not see the performance problems reported for the stock Windows install - it is quite responsive with the SSD and XFCE. Battery life is a solid 5 hours on a charge.&lt;/p&gt;
+
+&lt;h2 id=&quot;tpm&quot;&gt;TPM&lt;/h2&gt;
+
+&lt;p&gt;This is my first time encountering this. I disabled Secure Boot in the BIOS Advanced section of Setup, and enabled the Legacy ROM, for the quickest way past the problem.&lt;/p&gt;
+
+&lt;h2 id=&quot;usb-compatibility&quot;&gt;USB Compatibility&lt;/h2&gt;
+
+&lt;p&gt;This computer doesn’t ship with support for removable media. The installation required USB support. USB installation media boots fine, but the current stable (wheezy) installer couldn’t see it - apparently related to the new Celeron. The testing installation (jessie) saw the installation media, and could procede, but…&lt;/p&gt;
+
+&lt;h2 id=&quot;jessie-installer-wpa-support&quot;&gt;Jessie installer WPA support&lt;/h2&gt;
+
+&lt;p&gt;… I was unable to get the testing/jessie installer to authenticate against my well-established-and-fully compliant ‘N’ router. I was only able to connect to remote repositories by disabling all authentication on the router. After that, the process went fine, installing the currently standard XFCE desktop…&lt;/p&gt;
+
+&lt;h2 id=&quot;gnome-3&quot;&gt;GNOME 3&lt;/h2&gt;
+
+&lt;p&gt;… but I prefer GNOME. Upgrading/transitioning to GNOME broke the install. I reinstalled to XFCE and let it alone after that.&lt;/p&gt;
+
+&lt;h2 id=&quot;mmc0-got-irq-while-runtime-suspended&quot;&gt;“mmc0: got irq while runtime suspended”&lt;/h2&gt;
+
+&lt;p&gt;/var/log/messages was getting hit with the above log message a half dozen times per second. I didn’t even realize that the system had a card slot until after I disabled the driver, to stop the log spam…&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;codehilite&quot;&gt;&lt;code&gt;# cat /etc/modprobe.d/blacklist 
+# eliminate the mmc0: got irq while runtime suspended
+# multiple times per second.
+sdhci_acpi
+sdhci_pci
+sdhci
+# 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;xfce-wallpaper&quot;&gt;XFCE Wallpaper&lt;/h2&gt;
+
+&lt;p&gt;So now the system works OK, but there is a problem with the wallpaper. It is reset to a standard mouse mascot background on every login, which only covers part of the screen. To fix, I toggle a wallpaper every time. (Update 11/14 - the problem derived from multiple overlaid monitors fighting for wallpaper updates - disable the monitor tied to the external display port, or set all monitors to the same size)&lt;/p&gt;
+
+&lt;p&gt;Honestly, this is the kind of experience I expected 10 years ago, when we were only a few years into the “Year of the Linux Desktop”. Nowadays I expect better.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 14 Sep 2014 17:29:00 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/debian/bugs/2014/09/14/installing_debian_on_an_N2830/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/debian/bugs/2014/09/14/installing_debian_on_an_N2830/</guid>
+        
+        
+        <category>debian</category>
+        
+        <category>bugs</category>
+        
+      </item>
+    
+      <item>
+        <title>Is Documentation Considered Harmful?</title>
+        <description>&lt;h1 id=&quot;is-documentation-considered-harmful&quot;&gt;Is Documentation Considered Harmful?&lt;/h1&gt;
+
+&lt;p&gt;It’s commonly observed that developers don’t like to work on documentation. It’s commonly concluded that the reason is that documentation is the boring part.&lt;/p&gt;
+
+&lt;p&gt;But, I’m starting to wonder if there is a “High Priest of Knowledge” aspect to the aversion.&lt;/p&gt;
+
+&lt;p&gt;Here are a couple of incidents I observed at &lt;a href=&quot;http://debconf14.debconf.org/&quot;&gt;Debconf14&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;python-bof&quot;&gt;Python BOF&lt;/h2&gt;
+
+&lt;p&gt;In the Python BOF, There was an early statement from the chair on the current preferred way to package Python modules. A participant stated that the Debian wiki directly contradicts that. The chair made several statements that he/they couldn’t be expected to look beyond the main Python wiki page, and later added that he hadn’t looked at that page in quite some time, and didn’t know if it was right or not.&lt;/p&gt;
+
+&lt;p&gt;The action to fix the documentation was captured in the gobby notes, but, shortly thereafter, all references to documentation updates were gone.&lt;/p&gt;
+
+&lt;p&gt;I can kind of understand avoiding the work, but … deleting the action?&lt;/p&gt;
+
+&lt;h2 id=&quot;debian-keyring-management&quot;&gt;Debian Keyring Management&lt;/h2&gt;
+
+&lt;p&gt;There was a question that came up for me as I was doing some key management prep for the keysigning. Stated generally:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;What is the scope of a key signature? i.e.
+    &lt;ul&gt;
+      &lt;li&gt;What does it the signature explicitly cover?&lt;/li&gt;
+      &lt;li&gt;What is covered by extension/convention? or not covered?&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Or, a bit more specifically:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;What signed aspects of a key are invalidated by changes after the key signature?&lt;/li&gt;
+  &lt;li&gt;What aspects are covered if added after the signature?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Or, in its concrete form:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;What do you need to do to prep a signing subkey for a keysigning?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Keysigning is covered in gpg documentation and the Wiki, as are subkeys, but I found nothing that covers both in relation to each other.&lt;/p&gt;
+
+&lt;p&gt;I brought this up in the Debian Keyring talk, as an aspect of a bigger problem with the help available on understanding keys. The answer I got from the front is that they “knew too much” about the technology to be able to form a useful answer to the question, and that someone with much less knowledge (presumably me) should be the one expected to tackle it.&lt;/p&gt;
+
+&lt;p&gt;BTW, apparently the answer to the concrete question is “Nothing”.&lt;/p&gt;
+
+&lt;h2 id=&quot;infrastructure-update-process&quot;&gt;Infrastructure Update Process&lt;/h2&gt;
+
+&lt;p&gt;One session was about the paradoxes associated with the current process for updating Debian infrastructure. This was involved, but one core assertion was that the person developing a new feature needs to be responsible for insuring it works right. On the flip side, the infrastructure folk felt no responsibility to provide platform support, saying that documentation on replication was sufficient. When it was pointed out that it was not possible to do so (possibly because the schema is not  correct in any available source), they were unswayed.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In each of these cases, I couldn’t avoid the feeling that the documentation-avoider was deriving a benefit from the lack of information being made available.&lt;/p&gt;
+
+&lt;p&gt;So, why do you avoid documentation?&lt;/p&gt;
+</description>
+        <pubDate>Sun, 14 Sep 2014 04:05:12 -0400</pubDate>
+        <link>https://people.debian.org/~steele/blog/debian/linux/2014/09/14/is-documentation-considered-harmful/</link>
+        <guid isPermaLink="true">https://people.debian.org/~steele/blog/debian/linux/2014/09/14/is-documentation-considered-harmful/</guid>
+        
+        
+        <category>debian</category>
+        
+        <category>linux</category>
+        
+      </item>
+    
+  </channel>
+</rss>

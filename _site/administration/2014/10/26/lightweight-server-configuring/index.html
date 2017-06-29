@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lightweight Server Configuration CM</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Linux Musings. Things to remember/rant about.">
+    <link rel="canonical" href="https://people.debian.org/~steele/blog/administration/2014/10/26/lightweight-server-configuring/">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="alternate" type="application/rss+xml" title="Linux Musings"
+     href="/feed.xml">
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5STC4K7');</script>
+    <!-- End Google Tag Manager -->
+    
+</head>
+
+
+    <body>
+
+    <header class="site-header">
+
+  <div class="wrap">
+
+    <a class="site-title" href="/">Dave Steele's Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+
+  <header class="post-header">
+    <h1>Lightweight Server Configuration CM</h1>
+    <p class="meta">Oct 26, 2014</p>
+  </header>
+
+  <article class="post-content">
+  <p>My personal data is generally covered. Most of the time, it is either hosted
+somewhere else (github, Docs), or it is backed up using a straightforward
+process (Dropbox, NAS). Data rides through a crash or system upgrade just
+fine.</p>
+
+<p>System configuration is another matter. Recovery after recovery, I’ve looked
+into mechanisms for a system configuration backup strategy that meets my needs.
+Each time, I’ve come to the conclusion that manual recovery is the best option
+I could find.</p>
+
+<p>The traditional tools are just too heavyweight for me. Puppet, Chef, SaltStack,
+CFEngine … I’ve tried them all. Each requires a learning curve to get started,
+and each usually introduces topics I am just not interested in (masters,
+slaves, keys, dependencies, … Ruby). I need the capability rarely enough
+that there is relearning required with each session. For each, generating
+configuration recipes felt too much like software development. It should be
+easier. Or at least it needs to be easier for me.</p>
+
+<p>At Ohio LinuxFest last weekend, <a href="http://people.connexer.com/~roberto/main">Roberto Sánchez</a> did a <a href="http://people.connexer.com/~roberto/documents/olf2014/using_git_to_manage_your_systems_configuration.pdf">presentation</a>
+that ended up being about <a href="https://joeyh.name/code/etckeeper/">etckeeper</a>. This is definitely a step in the
+right direction for me. The one thing I’d say is that it may focus more on
+managing changes for potential rollback. I just want to define and restore
+quickly. It also would mix my services configurations together. I’d like to
+keep them separate.</p>
+
+<p>Serendipitously, Reddit r/programming last week had a <a href="http://www.reddit.com/r/linux/comments/1f7sh4/gnu_stow_manage_your_usrlocal_with_ease/">reference</a> to the use
+of <a href="http://www.gnu.org/software/stow/">GNU stow</a> for use in managing/backing up home directory configuration
+files. I could see this plus etckeeper solving my problem fine. Stow serves as
+a service-specific repository of system configuration, and etckeeper places
+it and /etc into a git repository.</p>
+
+<p>But, for the moment I’ve settled on an even easier path - <a href="https://github.com/davesteele/server-setup-scripts/blob/master/pptpd/setup-pptp.sh">shell</a>
+<a href="https://github.com/davesteele/server-setup-scripts/blob/master/tor/setup-tor-relay.sh">scripts</a>. They live in an environment that I won’t forget before the next
+system crash. Generating scripts is only about as hard as writing a setup
+howto. Configuration is stored as edits rather than complete (version
+specific) files.</p>
+
+<p>P.S. - Another option, <a href="http://cloudinit.readthedocs.org/en/latest/">cloud-init</a>, is a strong contender. The format is
+simple enough, and many services let you use it to define configuration at
+VPS creation time. But, it still is yet another format, it addresses a
+cross-distribution compatibility problem that I just don’t care about, and
+it is not available everywhere (and would therefore need to be bootstrapped).
+I’ll stick to scripts for now.</p>
+
+
+  </article>
+
+</div>
+
+
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'davesteelesblog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">
+
+    <div class="footer-col-1 column">
+      <ul>
+        <li>Dave Steele's Blog</li>
+        <li><a href="mailto:steele@debian.org">steele@debian.org</a></li>
+        <li><a href="/key-366150CE.pub.txt">AE0D BF5A 92A5 ADE4 9481<br>BA6F 8A31 71EF 3661 50CE</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col-2 column">
+      <ul>
+        <li>
+        <a href="https://people.debian.org/~steele/blog/feed.xml">
+        <span>
+        <img class="crispicon" src="/icons/rss.png">
+        <span class="username">RSS</span>
+        </span>
+        </a>
+        </li>
+        
+        
+        
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Linux Musings. Things to remember/rant about.</p>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    </body>
+</html>

@@ -1,14 +1,10 @@
 # Site settings
 title: Dave Steele's Blog
-email: dsteele@gmail.com
+email: steele@debian.org
 description: "Linux Musings. Things to remember/rant about."
 baseurl: ""
-url: "https://davesteele.github.io"
+url: "https://people.debian.org/~steele/blog"
 comments: true
-twitter_username: dsteele
-github_username:  davesteele
-gplus_name: David Steele
-gplus_account: 100462058146704694561
 
 
 # Build settings

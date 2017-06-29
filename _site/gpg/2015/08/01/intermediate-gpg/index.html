@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Intermediate GPG</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Linux Musings. Things to remember/rant about.">
+    <link rel="canonical" href="https://people.debian.org/~steele/blog/gpg/2015/08/01/intermediate-gpg/">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="alternate" type="application/rss+xml" title="Linux Musings"
+     href="/feed.xml">
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5STC4K7');</script>
+    <!-- End Google Tag Manager -->
+    
+</head>
+
+
+    <body>
+
+    <header class="site-header">
+
+  <div class="wrap">
+
+    <a class="site-title" href="/">Dave Steele's Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+
+  <header class="post-header">
+    <h1>Intermediate GPG</h1>
+    <p class="meta">Aug 1, 2015</p>
+  </header>
+
+  <article class="post-content">
+  <p>Let’s say you have been using  GnuPG for some amount of time. You’ve generated a key for yourself, know how to put it on a keyserver, understand what public keys are used for, know what the ‘web of trust’ is, and the difference between encryption and signing.</p>
+
+<p>Then, at some point, you have a sudden need to understand the workings of gpg in more detail. This is typically because you are about to attend your first <a href="https://en.wikipedia.org/wiki/Key_signing_party">key signing</a>, or because you start looking into why people keep talking about the need for ‘<a href="https://wiki.debian.org/Subkeys">subkeys</a>’.</p>
+
+<p>I found that transition bumpy. Here is a short list of topics that I believe everyone should understand for intermediate-level gpg operations.</p>
+
+<h3 id="how-to-keep-straight-the-various-things-called-keys">How to keep straight the various things called ‘keys’</h3>
+
+<p>When you first created your “key” using “gpg –gen-key”, you actually made a “key certificate”. Key certificates typically contain multiple public key pairs, plus other information.</p>
+
+<p>At the top of the key certificate is the ‘Primary’ (or ‘Master’) key pair, which is used for signing and certification  (“Certification” is the process of signing keys).</p>
+
+<p>The Primary key pair has one or more User IDs (UID) associated with it. The UID is a just a string (e.g. “David Steele &lt;dsteele@gmail.com&gt;”) that defines a person/entity that has access to the secret half of the key pairs.</p>
+
+<p>Most key certificates store a separate “subkey” pair to be used for encryption. The clear divide between signing and encryption keys is done to avoid a <a href="http://serverfault.com/questions/397973/gpg-why-am-i-encrypting-with-subkey-instead-of-primary-key">vulnerability</a>.</p>
+
+<p>So, in gpg, the word ‘key’ may refer to a key certificate, to one of the key pairs in the certificate, or to one of the public/private keys in a key pair, depending on the context. If you understand the roles that each of these entities provides, you should be able to keep the references straight. The rest of this document is intended to help with that.</p>
+
+<h3 id="key-signatures-explicitly-cover-only-a-single-primary-public-key-plus-a-user-id">Key signatures explicitly cover only a single Primary public key plus a User ID</h3>
+
+<p>When someone signs your ‘key’, the data included in the signature operation consists only of the public Primary key in your certificate, plus one UID. No other certificate data is included in the data being signed.</p>
+
+<p>This is important to know, because it means that a key signature against your key certificate/UID will remain valid for that UID as long as the Primary key and the UID have not been revoked, regardless of how the rest of the certificate is amended.</p>
+
+<p>It also means that, if you have more than one UID in your certificate, multiple independent signatures are required to cover all of them.</p>
+
+<h3 id="trust-for-other-keys-in-the-certificate-is-provided-by-way-of-self-signatures-using-the-primary-key">Trust for other keys in the certificate is provided by way of ‘self signatures’ using the Primary key</h3>
+
+<p>Since external key signatures only provides trust as far as the Primary key, another mechanism is needed to prove that the other keys in the certificates are trusted. This is provided by ‘self signatures’ - signatures of the other keys made using the Primary key. That provides a path of trust from the person who signed your key, through the Primary key, to each of the subkeys.</p>
+
+<p>Self signatures are automatically created whenever keys are manipulated in your certificate. That is why gpg asks for the Primary key passphrase whenever you work with subkeys.</p>
+
+<p>This prevalent use of self signatures means that the only time you need to worry about losing your position in the web of trust is when you add a UID or you transition to a new certificate. You are free to make any other changes without affecting your trust level.</p>
+
+<p>Hearkening back to the multiple meanings of ‘key’ - when you attend a key signing, you are collecting signatures against your key (Primary key) in order to provide web-of-trust verifiability for the keys (Primary and subkeys) that make up your key (certificate). Make sense?</p>
+
+<h3 id="in-general-nothing-is-ever-deleted-from-a-key-certificate">In general, nothing is ever deleted from a key certificate</h3>
+
+<p>This is true because it is enforced by key servers. Deleting a key in your local copy of your key certificate will have no effect on the data stored and provided by public key servers.</p>
+
+<p>If what you want to do is delete a key or a UID, what you do instead is create a <a href="https://www.debian-administration.org/article/450/Generating_a_revocation_certificate_with_gpg">revocation entry</a> for the key/UID using ‘gpg –edit-key’, and republish your key certificate with ‘gpg –send-key’. (Note that good key hygiene calls for pre-generating a <a href="https://www.debian-administration.org/article/450/Generating_a_revocation_certificate_with_gpg">revocation certificate</a> at key creation time, and keeping it around in case it is needed)</p>
+
+<h3 id="key-signatures-generally-live-only-in-the-certificate-holding-the-key-being-signed">Key signatures generally live only in the certificate holding the key being signed</h3>
+
+<p>When someone signs your Primary key, they do so by downloading your key certificate, and then performing a signing operation with, ‘gpg –sign-key’. They then send you the entire copy of your certificate, including this new signature. When you import this, gpg recognizes the duplication, and just adds the new signature to your local copy of the certificate.</p>
+
+<h3 id="a-key-certificate-may-be-referenced-in-gpg-using-the-key-idfingerprint-of-any-of-the-enclosed-keys">A key certificate may be referenced in gpg using the key id/fingerprint of any of the enclosed keys</h3>
+
+<p>By convention, your certificate is identified by the key id/fingerprint of your Primary key. But, this is just a convention - references to any of your subkeys may be used instead.</p>
+
+<p>Consider my current key:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ gpg --edit-key "AE0D BF5A 92A5 ADE4 9481  BA6F 71EF 3661 50CE"
+...
+pub  4096R/366150CE  created: 2010-08-15  expires: never       usage: SC  
+                     trust: ultimate      validity: ultimate
+sub  4096R/0D929394  created: 2010-08-15  expires: never       usage: E   
+sub  4096R/0A817A82  created: 2014-08-15  expires: 2019-08-14  usage: S   
+[ultimate] (1). David Steele &lt;dsteele@gmail.com&gt;
+[ultimate] (2)  David Steele &lt;daves@users.sourceforge.net&gt;
+</code></pre></div>
+
+<p>This key has a Primary key with the key id ‘366150CE’, which can be used for certification (usage ‘C’, again for signing keys) and for signing (usage ‘S’). The encryption key , ‘0D929394’ (usage ‘E’) was created automatically with the certificate. I added a signing-only subkey, ‘0A817A82’, some time later.</p>
+
+<p>If I wish to encrypt data using my encryption key, I can actually use any one of these key ids to identify the key certificate. That is, on my computer, each of these commands perform exactly the same operation, encryption using key ‘0D929394’:</p>
+
+<div class="highlighter-rouge"><pre class="codehilite"><code>$ gpg --encrypt --recipient 366150CE foo
+$ gpg --encrypt --recipient 0D929394 foo
+$ gpg --encrypt --recipient 0A817A82 foo
+$ gpg --encrypt --recipient dsteele@gmail.com foo
+</code></pre></div>
+
+<p>Note that I am using short ids to reference keys to be used for encryption - in practice that is considered a <a href="https://www.debian-administration.org/users/dkg/weblog/105">bad idea</a>. Fingerprints should be used instead (‘gpg –list-keys –fingerprints &lt;key reference&gt;’).</p>
+
+<h3 id="but-gpg-will-select-the-key-to-use-automatically-regardless-of-the-identifying-key-id">But, gpg will select the key to use automatically, regardless of the identifying key id</h3>
+
+<p>Again, you can use the key id of any of the keys in your certificate to identify the key certificate. But, once gpg has picked out the certificate, it ignores the specific subkey you may have specified, and instead automatically selects the key to use.</p>
+
+<p>For the key listed above, there are two keys which may be used for signing, ‘366150CE’ and ‘0A817A82’. Regardless of which key id may be reference in ‘gpg –sign’, the key ‘0A817A82’ is always used. This is because gpg will always select the <a href="http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM">newest valid key</a>.</p>
+
+<p>It is possible to override automatic key selection by appending the key id/finger print with an <a href="https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html">exclamation mark</a> on the command line.</p>
+
+<h3 id="you-should-consider-a-number-of-configuration-options-before-creating-and-signing-keys">You should consider a number of configuration options before creating and signing keys</h3>
+
+<p>The definition of what constitutes adequate encryption complexity changes over time. If you would like to be on the leading edge of that wave, consider the following:</p>
+
+<ul>
+  <li>‘gpg –gen-key’ using the default key types (‘RSA and RSA’) and increase the key length from the default to a length of 4096 bits</li>
+  <li>strengthen the hash algorithm used for signing</li>
+</ul>
+
+<p>The mechanics for both of these changes are described on the <a href="http://keyring.debian.org/creating-key.html">Debian keyring website</a>. If you do update the signing hash algorithm, you should update all of the self signatures in the key certificate.</p>
+
+<p>Note that ‘fixing’ the key length of your primary would invalidate all of the web-of-trust signatures in your key certificate. It amounts to creating a new certificate.</p>
+
+<h3 id="certificate-configuration-information-is-stored-in-the-primary-key-self-signature">Certificate configuration information is stored in the Primary key self signature</h3>
+
+<p>Key options, such as the preferred signing algorithm, are stored as a part of the self signature. Many ‘gpg –edit-key’ operations may therefore result in a new self signature being appended to a key.</p>
+
+<h3 id="subkeys-can-be-useful-but-you-dont-have-to-deal-with-that-before-the-keysigning">Subkeys can be useful, but you don’t have to deal with that before the keysigning</h3>
+
+<p>If you are like I was, you may be contemplating key signing parties and subkeys at the same time, and wondering how the two topics may interact. The answer is, they don’t. You may decide to generate your subkeys before or after a key signing. The validity of the new subkey is identical either way.</p>
+
+<h3 id="trust-vs-validity">‘Trust’ vs. ‘Validity’</h3>
+
+<p>The gpg application has precise definitions for these terms, which doesn’t always match general usage. A key’s ‘validity’ is defined by the web of trust provided by distributed key signatures, while ‘trust’ is defined on your local keyring using the ‘trust’ command under ‘gpg –edit-key’. The interaction of these two terms is described in detail in the <a href="https://www.gnupg.org/gph/en/manual/x334.html#AEN384">GNU Privacy Handbook</a>.</p>
+
+<h3 id="more-detail-is-available">More detail is available.</h3>
+
+<p>For more detail on what key certificates look like, and how gpg works, see <a href="https://davesteele.github.io/gpg/2014/09/20/anatomy-of-a-gpg-key/">Anatomy of a GPG Key</a>.</p>
+
+
+  </article>
+
+</div>
+
+
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'davesteelesblog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">
+
+    <div class="footer-col-1 column">
+      <ul>
+        <li>Dave Steele's Blog</li>
+        <li><a href="mailto:steele@debian.org">steele@debian.org</a></li>
+        <li><a href="/key-366150CE.pub.txt">AE0D BF5A 92A5 ADE4 9481<br>BA6F 8A31 71EF 3661 50CE</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col-2 column">
+      <ul>
+        <li>
+        <a href="https://people.debian.org/~steele/blog/feed.xml">
+        <span>
+        <img class="crispicon" src="/icons/rss.png">
+        <span class="username">RSS</span>
+        </span>
+        </a>
+        </li>
+        
+        
+        
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Linux Musings. Things to remember/rant about.</p>
+    </div>
+
+  </div>
+
+</footer>
+
+
+    </body>
+</html>
