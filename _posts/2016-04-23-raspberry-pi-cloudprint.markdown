@@ -3,6 +3,7 @@ layout: post
 title:  "A Raspberry Pi Cloud Print Proxy"
 date:   2016-4-23 12:34:00
 categories: raspberrypi
+excerpt_separator: <!--more-->
 ---
 
 ## Making a Raspberry Pi Google Cloud Print Proxy
@@ -16,6 +17,8 @@ Brother).
 Here's a simple procedure to turn a headless Raspberry Pi into a Google Cloud Print proxy, making
 your local printer(s) visible to Cloud Print. This is made possible using
 [armoo](https://github.com/armooo)'s cloudprint proxy software.
+
+<!--more-->
 
 Before you start, you'll need a Raspberry Pi 2 (Edit: maybe not - see Notes) or
 newer with:

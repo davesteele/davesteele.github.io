@@ -3,6 +3,7 @@ layout: post
 title:  "Intermediate GPG"
 date:   2015-08-01 21:44:00
 categories: gpg
+excerpt_separator: <!--more-->
 ---
 
 Let's say you have been using  GnuPG for some amount of time. You've generated a key for yourself, know how to put it on a keyserver, understand what public keys are used for, know what the 'web of trust' is, and the difference between encryption and signing.
@@ -10,6 +11,8 @@ Let's say you have been using  GnuPG for some amount of time. You've generated a
 Then, at some point, you have a sudden need to understand the workings of gpg in more detail. This is typically because you are about to attend your first [key signing](https://en.wikipedia.org/wiki/Key_signing_party), or because you start looking into why people keep talking about the need for '[subkeys](https://wiki.debian.org/Subkeys)'.
 
 I found that transition bumpy. Here is a short list of topics that I believe everyone should understand for intermediate-level gpg operations.
+
+<!--more-->
 
 ### How to keep straight the various things called 'keys'
  

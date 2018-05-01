@@ -3,6 +3,7 @@ layout: post
 title:  "The Best VPN Service is a VPS"
 date:   2014-10-30 22:17:00
 categories: administration
+excerpt_separator: <!--more-->
 ---
 
 I felt the need for a [VPN][] capability for use on untrusted mobile Wifi
@@ -14,6 +15,8 @@ Commercial VPN services are plentiful, and [cheap enough][], but I believe
 I've found a better option for my purposes.
 
 [cheap enough]: http://lifehacker.com/5935863/five-best-vpn-service-providers
+
+<!--more-->
 
 At the time of this writing, there are [several][] [options][] for personal
 [VPS][] instances priced in the $5/TB/month range. That's more than enough

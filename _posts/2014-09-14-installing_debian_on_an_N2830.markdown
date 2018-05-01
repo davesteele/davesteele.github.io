@@ -3,6 +3,7 @@ layout: post
 title:  "Installing Debian on a Celeron N2830"
 date:   2014-09-14 21:29:00
 categories: debian bugs
+excerpt_separator: <!--more-->
 ---
 These are Debian installation notes for:
 
@@ -19,6 +20,8 @@ I don't normally do laptops. I lean more towards the camp of having a computer a
 Twice now I have run into special occasions that forced exceptions to my rule. Both times I  bought the cheapest laptop I could find, swapped out the drive for an SSD Linux install, and unloaded the machine after the conference. The first time was in 2011. I recall the installation on the Toshiba Celeron 925 went smoothly. I expected last months repeat on a Dell Celeron N2830 to go as well.
 
 Well, it didn't. I list the particular issues here, with my work-arounds, in case it might help someone else.
+
+<!--more-->
 
 BTW, the computer works fine once the installation problems are worked out. I do not see the performance problems reported for the stock Windows install - it is quite responsive with the SSD and XFCE. Battery life is a solid 5 hours on a charge.
 

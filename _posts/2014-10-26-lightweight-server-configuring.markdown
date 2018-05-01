@@ -15,6 +15,8 @@ into mechanisms for a system configuration backup strategy that meets my needs.
 Each time, I've come to the conclusion that manual recovery is the best option
 I could find.
 
+<!--more-->
+
 The traditional tools are just too heavyweight for me. Puppet, Chef, SaltStack,
 CFEngine ... I've tried them all. Each requires a learning curve to get started,
 and each usually introduces topics I am just not interested in (masters,

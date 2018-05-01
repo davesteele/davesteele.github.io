@@ -3,6 +3,7 @@ layout: post
 title:  "Is Documentation Considered Harmful?"
 date:   2014-09-14 08:05:12
 categories: debian linux
+excerpt_separator: <!--more-->
 ---
 Is Documentation Considered Harmful?
 ====================================
@@ -12,6 +13,8 @@ It's commonly observed that developers don't like to work on documentation. It's
 But, I'm starting to wonder if there is a "High Priest of Knowledge" aspect to the aversion.
 
 Here are a couple of incidents I observed at [Debconf14](http://debconf14.debconf.org/).
+
+<!--more-->
 
 ***
 
