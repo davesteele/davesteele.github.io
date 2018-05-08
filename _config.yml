@@ -10,6 +10,12 @@ github_username:  davesteele
 gplus_name: David Steele
 gplus_account: 100462058146704694561
 
+# category feed settings
+
+name: "Dave Steele's Blog"
+#description: 
+url: https://davesteele.github.io
+
 
 # Build settings
 markdown: kramdown
