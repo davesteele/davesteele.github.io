@@ -46,6 +46,7 @@ Here is an example of a GTD-ized todo.txt file:
     Buy cat food @errands +PetCare
     Feed the cat @pending
 
+    # cat-proofing the house tasks
     Reverse all the toilet paper rolls @home
 
     # WeeklyReview
