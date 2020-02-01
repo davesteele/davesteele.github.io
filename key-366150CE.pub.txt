@@ -1,3 +1,18 @@
+
+$ gpg --auto-key-locate wkd --locate-keys steele@debian.org
+pub   rsa4096 2010-08-15 [SC]
+      AE0DBF5A92A5ADE49481BA6F8A3171EF366150CE
+uid           [ unknown] David Steele <steele@debian.org>
+uid           [ unknown] David Steele <dsteele@gmail.com>
+sub   rsa4096 2010-08-15 [E]
+sub   rsa4096 2017-06-25 [S] [expires: 2022-06-24]
+
+$ /usr/lib/gnupg*/gpg-wks-client --print-wkd-url steele@debian.org
+https://openpgpkey.debian.org/.well-known/openpgpkey/debian.org/hu/8swwur4nhtkig5rcfemakwmkutahpu1k?l=steele
+
+$ wget -q -O - https://openpgpkey.debian.org/.well-known/openpgpkey/debian.org/hu/8swwur4nhtkig5rcfemakwmkutahpu1k?l=steele | sudo apt-key add -
+
+
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBExnT3cBEACjM5fQ6hQUW6Rp7ddUzEhW3VKZ6cub3kdXMINk0Zrbyw9+J4T9
