@@ -6,6 +6,9 @@ categories: raspberrypi
 excerpt_separator: <!--more-->
 ---
 
+
+(edit 10/20/2020 - [RIP Cloud Print](https://en.wikipedia.org/wiki/Google_Cloud_Print#Planned_discontinuation))
+
 ## Making a Raspberry Pi Google Cloud Print Proxy
 
 Google [Cloud Print](https://www.google.com/cloudprint/learn/) has become
