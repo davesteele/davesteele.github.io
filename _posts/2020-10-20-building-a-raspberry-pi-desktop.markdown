@@ -114,6 +114,9 @@ The Chromium browser in Raspberry Pi OS does not support Netflix et al. out of t
 
 #### USB Headphone support
 
+(Edit - as of December 2020, these instructions are obsolete - the OS has transitioned from
+ALSA to PulseAudio. The sound widget on the desktop can be used to select audio inputs and outputs. It still won't let me select my BlueTooth headset, though.)
+
 The Pi 4 doesn't have a microphone or A/D. USB headphones are supported, but not by the desktop interface. I used [these instructions](https://iotbytes.wordpress.com/connect-configure-and-test-usb-microphone-and-speaker-with-raspberry-pi/) to create an _.asoundrc_ file that enables USB audio.
 
 Don't attempt to get Bluetooth audio working - all of my audio outputs become choppy after trying to do this.
@@ -148,5 +151,8 @@ There is one persistent bug I see that others may not. My ISP-provided router se
 Bottom line, the Raspberry Pi 4 works acceptably well as a desktop computer driving dual displays.
 
 Chromium is the weakest part of this experience. The current Pi version (78.0.3904/108) is significantly older than the current Debian Stable (83.0.4103-116). I'd love to see more attention paid to this package.
+
+(Edit 12/5/2020 - with the December release of Raspberry Pi OS, Chromium has been upgraded
+to version 84.0.4147.141. The DRM script still works)
 
 I'm thankful to the Pi for giving me time to sit back and mull what I want out of my next PC. After this experience, I am looking harder at buying a mini-pc for my next desktop.
