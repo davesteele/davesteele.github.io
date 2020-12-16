@@ -114,8 +114,16 @@ The Chromium browser in Raspberry Pi OS does not support Netflix et al. out of t
 
 #### USB Headphone support
 
-(Edit - as of December 2020, these instructions are obsolete - the OS has transitioned from
-ALSA to PulseAudio. The sound widget on the desktop can be used to select audio inputs and outputs. It still won't let me select my BlueTooth headset, though.)
+Since this was written, Raspberry Pi OS has transistioned from ALSA to PulseAudio. USB headphones now can be expected to work out-of-the-box.
+
+Bluetooth took a bit of work. I used [these instructions](https://askubuntu.com/questions/366032/pulseaudio-not-detecting-bluetooth-headset-automatically), which may or may not have made a difference.
+
+One command was absolutely required:
+
+    sudo apt-get install pulseaudio-module-bluetooth
+
+
+(The original ALSA Text)
 
 The Pi 4 doesn't have a microphone or A/D. USB headphones are supported, but not by the desktop interface. I used [these instructions](https://iotbytes.wordpress.com/connect-configure-and-test-usb-microphone-and-speaker-with-raspberry-pi/) to create an _.asoundrc_ file that enables USB audio.
 
