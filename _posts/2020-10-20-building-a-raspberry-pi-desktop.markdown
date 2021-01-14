@@ -114,7 +114,7 @@ The Chromium browser in Raspberry Pi OS does not support Netflix et al. out of t
 
 #### USB Headphone support
 
-Since this was written, Raspberry Pi OS has transistioned from ALSA to PulseAudio. USB headphones now can be expected to work out-of-the-box.
+Since this was written, Raspberry Pi OS has transitioned from ALSA to PulseAudio. USB headphones now can be expected to work out-of-the-box.
 
 Bluetooth took a bit of work. I used [these instructions](https://askubuntu.com/questions/366032/pulseaudio-not-detecting-bluetooth-headset-automatically), which may or may not have made a difference.
 
