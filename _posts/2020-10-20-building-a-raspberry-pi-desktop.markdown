@@ -122,6 +122,10 @@ One command was absolutely required:
 
     sudo apt-get install pulseaudio-module-bluetooth
 
+I've also added this to my startup script:
+
+    pactl load-module module-bluetooth-discover
+
 
 (The original ALSA Text)
 
