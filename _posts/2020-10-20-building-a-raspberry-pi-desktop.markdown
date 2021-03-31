@@ -156,7 +156,8 @@ Two applications in particular show a notable lag - Chromium and LibreOffice. I 
 
 There are times that I'm constrained by running on a non-x86 processor. It can add a confounding variable to some software development tasks, and there are some challenges to getting some software to run. Notably, Dropbox does not support Arm or the Pi.
 
-There is one persistent bug I see that others may not. My ISP-provided router serves both IPv4 and IPv6 addresses. For some reason, Chromium frequenty switches between them, throwing a "Network Changed" error each time. Disabling IPv6 on the outbound interface fixed that issue.
+There is one persistent bug I see that others may not. My ISP-provided router serves both IPv4 and IPv6 addresses. For some reason, Chromium frequenty switches between them, throwing a "Network Changed" error each time. Disabling IPv6 on the outbound interface fixed that issue. [Edit 04/21 - This was
+traced to the presence of a second router plugged into the first. Oddly, only Pi's had heartburn with it]
 
 ## Summary
 
