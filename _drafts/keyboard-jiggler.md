@@ -54,7 +54,9 @@ On the Pi, install git:
     sudo apt-get update
     sudo apt-get install git
 
-Clone the piezero-usb-hid-keyboard repository to the Pi user home directory:
+Clone the
+[piezero-usb-hid-keyboard](https://github.com/raspberrypisig/pizero-usb-hid-keyboard)
+repository to the Pi user home directory:
 
     cd ~
     git clone https://github.com/raspberrypisig/pizero-usb-hid-keyboard.git
