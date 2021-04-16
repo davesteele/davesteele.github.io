@@ -44,7 +44,7 @@ The base Pi Zero will do the job, but I find the built in wireless on the "W" ex
 
 For this next part, you need to be logged into the Pi, and it needs Internet
 access. I recommend using the [Comitup](https://davesteele.github.io/comitup/)
-disk image to bring the headless Pi
+Lite disk image to bring the headless Pi
 [online](https://github.com/davesteele/comitup/wiki/Tutorial).
 
 #### Step 2 - Install the USB client keyboard software
