@@ -1,14 +1,14 @@
 ---
 layout: post
 title:  "Make a Keyboard Jiggler using a Raspberry Pi Zero W"
-# date:   2016-4-23 12:34:00
+date:   2021-04-18 12:34:00
 categories: raspberrypi
 excerpt_separator: <!--more-->
 ---
 
 ## Make a Keyboard Jiggler using a Raspberry Pi Zero W
 
-![Pi Keyboard Jiggler](/images/keyboard-jiggler-jiggler.jpg)
+![Pi Keyboard Jiggler](/images/2021-04-18-keyboard-jiggler/keyboard-jiggler-jiggler.jpg)
 
 The problem - your computer automatically sleeps or locks up when unused, there are times you don't want it to do that, and it is either inconvenient or impossible to disable.
 
@@ -24,7 +24,7 @@ There is room for improvement for the typical commercial jiggler. In some cases,
 
 Again, this project turns a Raspberry Pi into a simlated USB keyboard. When attached to a host computer, it boots off of host power, and registers as a second keyboard on the host. Then, about once a minute, it quickly toggles Caps Lock on the host, proving beyond a shadow of a doubt that a human is actively working on the computer.
 
-![Blinkie](/images/keyboard-jiggler-capsblink.gif)
+![Blinkie](/images/2021-04-18-keyboard-jiggler/keyboard-jiggler-capsblink.gif)
 
 The build-your-own option is pretty cheap - cheaper than many commercial choices. And it's satisfying to see your handiwork do something useful in just a short time.
 
@@ -81,38 +81,17 @@ You should see the results of pressing a keyboard "h" on the host.
 #### Step 3 - Add the Keyboard Jiggler code
 
 
-Create the file [_/home/pi/tickle_](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-tickle-py), and add the following contents:
-
-    #!/usr/bin/python3
-    
-    import subprocess
-    import time
-    
-    def capslock():
-        subprocess.run(
-            "/home/pi/pizero-usb-hid-keyboard/hid-gadget-test /dev/hidg0 keyboard".split(),
-            text=True,
-            input="caps-lock\n",
-        )
-    
-    def main():
-        while True:
-            capslock()
-            capslock()
-            time.sleep(55)
-    
-    if __name__ == "__main__":
-        main()
-
-This is Python, so spaces are significant.
+Create the file _/home/pi/tickle.py_, and populate it according to [this
+gist](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-tickle-py).
+This code is Python, so spaces are significant.
 
 Make the file executable:
 
-    chmod 755 /home/pi/tickle
+    chmod 755 /home/pi/tickle.py
 
-Edit the file [_/etc/rc.local_](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-rc-local), and add a call to run tickle in the background before the exit call:
+Edit the file [_/etc/rc.local_](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-rc-local), and add a call to run _tickle.py_ in the background before the exit call:
 
-    /home/pi/tickle &
+    /home/pi/tickle.py &
 
 Cycle power on the Pi, and you should see the Caps Lock light on your keyboard flash about once a minute.
 
