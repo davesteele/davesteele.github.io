@@ -12,7 +12,7 @@ excerpt_separator: <!--more-->
 
 The problem - your computer automatically sleeps or locks up when unused, there are times you don't want it to do that, and it is either inconvenient or impossible to disable.
 
-Thre is a generally-available solution for this - the [Mouse Jiggler](https://en.wikipedia.org/wiki/Mouse_Jiggler). This USB device emulates a  mouse, and strives to generates just enough simulated mouse movement to convince your computer that there is an active human present.
+There is a generally-available solution for this - the [Mouse Jiggler](https://en.wikipedia.org/wiki/Mouse_Jiggler). This USB device emulates a  mouse, and strives to generates just enough simulated mouse movement to convince your computer that there is an active human present.
 
 This project turns a small Raspberry Pi into a USB jiggler device for your main computer. It emulates a keyboard instead of a mouse, which can implement a more robust strategy for staving off screen savers. It is reliable, flexible, and configurable.
 
