@@ -60,9 +60,11 @@ Now Pi-hole will only run when the device is connected to the upstream WiFi.
 
 The Pi-hole installation instructions talk about the importance that the IP
 address of the device be persistent. The preferred mechanism is to configure
-your router to return a consistent IP configuration for the device. If that is
-not practical, you can set the current address as static using the
-NetworkManager _nmcli_ command.
+your router to return a consistent IP configuration for the device. In
+practice, the upstream router will continue to provide the same pool ip address
+if the device is generally online.  But, if those options are not practical,
+you can set the current address as static using the NetworkManager _nmcli_
+command.
 
 For instance, if _ip addr_ and _ip route_ return:
 
