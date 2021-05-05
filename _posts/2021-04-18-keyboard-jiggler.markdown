@@ -73,7 +73,7 @@ If it is not already, plug the Pi into a USB port of your host computer, using t
 
 Log on to the Pi again, and test the hid-keyboard install by sending a keystroke to the host:
 
-    sudo /home/pi/pizero-usb-hid-keyboard/sendkeys.sh h
+    sudo /home/pi/pizero-usb-hid-keyboard/sendkeys h
 
 You should see the results of pressing a keyboard "h" on the host.
 
