@@ -410,7 +410,7 @@ The [hokey][] utility, from the hopenpgp-tools package, can perform a 'lint' ope
 
 [hokey]: https://help.riseup.net/en/security/message-security/openpgp/best-practices#openpgp-key-checks
 
-    $ hkt export-pubkeys <fingerprint> | hokey lint
+    $ gpg  --export "David Steele" | hokey lint
 
 The pgpdump program provides more information in the dump, and also has a [web interface][].
 
