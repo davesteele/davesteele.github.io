@@ -7,7 +7,7 @@ categories: gpg
 
 I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool 'gpg'. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were tangential to the particular procedure, and therefore not covered where I needed it to be.
 
-For me, the key to understanding how to work with gpg was to understand the packet structure of the underlying OpenPGP Message Format ([RFC4880](http://tools.ietf.org/html/rfc4880)), which defines how gpg messages, signatures, and key material are stored. The goal of this post is to grease the skids for the next guy, by tying the key storage format to the RFC definition, and to the associated gpg commands and parameters.
+For me, the key to understanding how to work with gpg was to understand the packet structure of the underlying OpenPGP Message Format ([RFC4880](https://datatracker.ietf.org/doc/html/rfc4880)), which defines how gpg messages, signatures, and key material are stored. The goal of this post is to grease the skids for the next guy, by tying the key storage format to the RFC definition, and to the associated gpg commands and parameters.
 
 ### TL;DR
 
@@ -158,21 +158,21 @@ The first packet in a published OpenPGP/gpg key certificate is the primary signi
 
 The 'types' of packets in an OpenPGP key certificate or message are defined in Section 5 of the RFC ([RFC4880-5][]). The primary signing public key uses a packet with a 'tag' value of 6 ([RFC4880-5.5.1.1][]). The tag values are not shown in the gpg key dump - just the resulting type.
 
-[RFC4880-5]: http://tools.ietf.org/html/rfc4880#section-5
-[RFC4880-5.5.1.1]: http://tools.ietf.org/html/rfc4880#section-5.5.1.1
+[RFC4880-5]: https://datatracker.ietf.org/doc/html/rfc4880#section-5
+[RFC4880-5.5.1.1]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.5.1.1
 
 
 ### <a name="PacketVer"></a>Packet Version
 
 The RFC defines both 'version 3' and 'version 4' packet types. For key packets, a modern gpg will only create version 4 packets ([RFC4880-5.5.2][]). You should avoid working with version 3 keys - there are known weaknesses with the format.
 
-[RFC4880-5.5.2]: http://tools.ietf.org/html/rfc4880#section-5.5.2
+[RFC4880-5.5.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.5.2
 
 ### <a name="KeyAlg"></a>Key Algorithm
 
 The "algo" parameter in the dump identifies the encryption algorithm associated with the key packet. The list of required and possible algorithms is listed in the  "Constants" section of the RFC ([RFC4880-9.1][]). 
 
-[RFC4880-9.1]: http://tools.ietf.org/html/rfc4880#section-9.1
+[RFC4880-9.1]: https://datatracker.ietf.org/doc/html/rfc4880#section-9.1
 
 That section states that 'DSA' (for signing) and 'Elgamal' (for encryption) can be expected to be the most available across implementations and versions. My key uses RSA (encrypt or sign), which is the current default in gpg:
 
@@ -216,7 +216,7 @@ There has been a fair amount of mulling about the right strategy for key expirat
 
 The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed as a hexadecimal string, divided into 10 4-character groups ([rfc4880-12.2][]). When validating keys for key signing, the fingerprint is used.
 
-[RFC4880-12.2]: http://tools.ietf.org/html/rfc4880#section-12.2
+[RFC4880-12.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-12.2
 
     $ gpg --fingerprint "David Steele"
     pub   4096R/366150CE 2010-08-15
@@ -230,7 +230,7 @@ The key certificate dump is expressing this fingerprint as a 'key id' (or 'long 
 
 The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id ('short key id'), shown on the 'pub' line for the fingerprint call above. It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
 
-[RFC4880-3.3]: http://tools.ietf.org/html/rfc4880#section-3.3
+[RFC4880-3.3]: https://datatracker.ietf.org/doc/html/rfc4880#section-3.3
 
 Going one step further down the rabbit hole, in some contexts this value needs to have "0x" prepended ('0x366150CE'). I've run across this in a key server search function.
 
@@ -246,9 +246,9 @@ The fingerprint/key id is a hash of the entire key packet, and only the key pack
 
 The user ID packet defines a name/email address that is associated with the key certificate ([RFC4880-5.11][]). The gpg program will store it in [RFC2822][] format ("David Steele <dsteele@gmail.com\>") based on the name and email you provide it when you generated the key.
 
-[RFC2822]: http://tools.ietf.org/html/rfc2822#section-3.4
+[RFC2822]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.4
 
-[RFC4880-5.11]: http://tools.ietf.org/html/rfc4880#section-5.11
+[RFC4880-5.11]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.11
 
 The key certificate can have more than one user id. For instance, if you want to use the key certificate with more than one email account, multiple user ids would be needed.
 
@@ -262,7 +262,7 @@ A key signature only covers one user id. Separate signatures are needed if certi
 
 Signatures are identified by the 'signature type', shown as 'sigclass' in the packet certificate dump. Types/classes 0x10 through 0x13 are key signatures ([RFC4880-5.2.1][]).
 
-[RFC4880-5.2.1]: http://tools.ietf.org/html/rfc4880#section-5.2.1
+[RFC4880-5.2.1]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.1
 
 Key signatures can be created using the 'sign-key' command in the key edit mode. 
 
@@ -270,7 +270,7 @@ Key signatures can be created using the 'sign-key' command in the key edit mode.
 
 The 'self signature' is a key signature generated by the primary key being signed. It serves as verification that the user id is valid for that key. For version 4 packets, it also provides a number of parameters to be associated with the key/user id pair ([RFC4880-5.2][]).
 
-[RFC4880-5.2]: http://tools.ietf.org/html/rfc4880#section-5.2
+[RFC4880-5.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2
 
 Self signatures are generated automatically by gpg, as keys are generated and as parameters are changed.
 
@@ -293,7 +293,7 @@ I have both 0x10 and 0x13 key signatures in my key certificate.
 A signature is actually a cryptographic operation over a hash of the entity being signed. The list of digest
 algorithms ('hash' and 'digest' are interchangeable) are in [RFC4880-9.4][].
 
-[RFC4880-9.4]: http://tools.ietf.org/html/rfc4880#section-9.4
+[RFC4880-9.4]: https://datatracker.ietf.org/doc/html/rfc4880#section-9.4
 
 Note that MD5 (digest algo 1) is [broken][]. SHA-1 (digest algo 2) is the standard, but is showing signs of age. You can set the signature
 preferences using the [personal-digest-preferences][] and [cert-digest-algo][] parameters in ~/.gnupg/gpg.conf.
@@ -308,14 +308,14 @@ preferences using the [personal-digest-preferences][] and [cert-digest-algo][] p
 
 Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used ([RFC4880-5.2][]). That means such information is validated by the primary key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in [RFC4880-5.2.3.1][]
 
-[RFC4880-5.2]: http://tools.ietf.org/html/rfc4880#section-5.2
-[RFC4880-5.2.3.1]: http://tools.ietf.org/html/rfc4880#section-5.2.3.1
+[RFC4880-5.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2
+[RFC4880-5.2.3.1]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.1
 
 #### <a name="KeyFlags"/>Key Flag Subpacket
 
 I've said a couple of times now that the primary key is used for signing, and there is a separate encryption subkey. Well, it is the 'keyflags' field that defines these roles for the keys ([RFC4880-5.2.3.21][]).
 
-[RFC4880-5.2.3.21]: http://tools.ietf.org/html/rfc4880#section-5.2.3.21
+[RFC4880-5.2.3.21]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.21
 
 The flag data is reflected in the output of gpg when you invoke \-\-edit-key:
 
@@ -362,7 +362,7 @@ This parameter is listing the algorithms a sender should use to send you encrypt
 
 The defined list of algorithms is at [RFC4880-9.2][]. You will probably not need to work with this list.
 
-[RFC4880-9.2]: http://tools.ietf.org/html/rfc4880#section-9.2
+[RFC4880-9.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-9.2
 
 #### <a name="PrefHashAlgos"/>Preferred Hash Algorithms
 
@@ -374,13 +374,13 @@ The hash algorithms available are defined at [RFC4880-9.4][]. These are used for
 
 "Features" doesn't yet serve much purpose ([RFC4880-5.2.3.24][]).
 
-[RFC4880-5.2.3.24]: http://tools.ietf.org/html/rfc4880#section-5.2.3.24
+[RFC4880-5.2.3.24]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.24
 
 #### <a name="KeyServPrefs"/>Key Server Preferences
 
 The key server preferences subpacket is also a bit light ([RFC4880-5.2.3.17][])
 
-[RFC4880-5.2.3.17]: http://tools.ietf.org/html/rfc4880#section-5.2.3.17
+[RFC4880-5.2.3.17]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.17
 
 ### <a name="ExternalSigs"/>External Key Signatures
 
@@ -399,7 +399,7 @@ This signing subkey was created in 2014. It, and the encryption subkey, are only
 
 The new wrinkle in this key is an expiration subpacket on the self signature, which puts a time limit on the certification ([RFC4880-5.2.3.6][]).
 
-[RFC4880-5.2.3.6]: http://tools.ietf.org/html/rfc4880#section-5.2.3.6
+[RFC4880-5.2.3.6]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.6
 
 (Added - 19 Apr 2015) Note that gpg will automatically use the [most recent signing/encryption subkey](http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM) when the master is referenced. To force a specific key/subkey, add an
 [exclamation mark](http://www.enricozini.org/2006/tips/gpg-select-subkey/) after the Key ID.
