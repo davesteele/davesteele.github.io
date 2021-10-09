@@ -150,7 +150,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 -----
 
 
-## <a name="PrimaryKey"></a>Primary Key [⬆](#PrimaryPacket)
+## <a name="PrimaryKey"></a>Primary Key [↑](#PrimaryPacket)
 
 The first packet in a published OpenPGP/gpg key certificate is the primary signing/certification public key. The overall key certificate is referenced by the Key ID of this key.
 
