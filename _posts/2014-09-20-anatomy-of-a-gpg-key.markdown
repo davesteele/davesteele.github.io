@@ -61,9 +61,11 @@ I've linked aspects of the key dump to explanation paragraphs below.
 > &nbsp;&nbsp;&nbsp;&nbsp;pkey[1]: [17 bits]  
 > &nbsp;&nbsp;&nbsp;&nbsp;[keyid: 8A3171EF366150CE](#KeyId)  
 
+<a name="UIDPacket"/>
 > \# [User ID #1](#UID1)  
 > :user ID packet: "David Steele <daves@users.sourceforge.net\>"  
 
+<a name="EndorsingPackets"/>
 > \# [Endorsing Signatures](#EndorsingSigs)  
 > \# [Self Signature](#SelfSig)  
 > :signature packet: algo 1, keyid 8A3171EF366150CE  
@@ -117,6 +119,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 > &nbsp;&nbsp;&nbsp;&nbsp;data: [157 bits]  
 > &nbsp;&nbsp;&nbsp;&nbsp;data: [159 bits]  
 
+<a name="EncryptionSubkeyPacket"/>
 > \# [Encryption subkey](#EncryptSubkey)  
 > :public sub key packet:  
 > &nbsp;&nbsp;&nbsp;&nbsp;version 4, algo 1, created 1281839112, expires 0  
@@ -131,6 +134,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 > &nbsp;&nbsp;&nbsp;&nbsp;subpkt 16 len 8 (issuer key ID 8A3171EF366150CE)  
 > &nbsp;&nbsp;&nbsp;&nbsp;data: [4096 bits]  
 
+<a name="SigningSubkeyPacket"/>
 > \# [Signing subkey](#SigningSubkey)  
 > :public sub key packet:  
 > &nbsp;&nbsp;&nbsp;&nbsp;version 4, algo 1, created 1408105689, expires 0  
@@ -154,7 +158,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 
 The first packet in a published OpenPGP/gpg key certificate is the primary signing/certification public key. The overall key certificate is referenced by the Key ID of this key.
 
-### <a name="PacketType"></a>Packet Type
+### <a name="PacketType"></a>Packet Type [↑](#PrimaryPacket)
 
 The 'types' of packets in an OpenPGP key certificate or message are defined in Section 5 of the RFC ([RFC4880-5][]). The primary signing public key uses a packet with a 'tag' value of 6 ([RFC4880-5.5.1.1][]). The tag values are not shown in the gpg key dump - just the resulting type.
 
@@ -162,13 +166,13 @@ The 'types' of packets in an OpenPGP key certificate or message are defined in S
 [RFC4880-5.5.1.1]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.5.1.1
 
 
-### <a name="PacketVer"></a>Packet Version
+### <a name="PacketVer"></a>Packet Version [↑](#PrimaryPacket)
 
 The RFC defines both 'version 3' and 'version 4' packet types. For key packets, a modern gpg will only create version 4 packets ([RFC4880-5.5.2][]). You should avoid working with version 3 keys - there are known weaknesses with the format.
 
 [RFC4880-5.5.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.5.2
 
-### <a name="KeyAlg"></a>Key Algorithm
+### <a name="KeyAlg"></a>Key Algorithm [↑](#PrimaryPacket)
 
 The "algo" parameter in the dump identifies the encryption algorithm associated with the key packet. The list of required and possible algorithms is listed in the  "Constants" section of the RFC ([RFC4880-9.1][]). 
 
@@ -197,7 +201,7 @@ The length of the key is important. Mine is 4096 bits, based on the current [rec
 
 [KeyLengthRecommendation]: http://keyring.debian.org/creating-key.html
 
-### <a name="DatesExpir"></a>Dates and Expiration
+### <a name="DatesExpir"></a>Dates and Expiration [↑](#PrimaryPacket)
 
 The dates in the key certificate dump are [Unix epochs][epoch]. Convert to human-readable with:
 
@@ -212,7 +216,7 @@ Perhaps for that reason, gpg does not use this field to define the expiration da
 
 There has been a fair amount of mulling about the right strategy for key expiration. My sense is that the consensus is that opinion on expiring Primary keys is mixed, encryption subkeys should have no expiration, and signing subkeys should.
 
-### <a name="KeyId"></a>Key ID
+### <a name="KeyId"></a>Key ID [↑](#PrimaryPacket)
 
 The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed as a hexadecimal string, divided into 10 4-character groups ([rfc4880-12.2][]). When validating keys for key signing, the fingerprint is used.
 
@@ -242,7 +246,7 @@ The Key ID of the Primary public key ('366150CE' in this case) is used to refer 
 
 The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is changed, but is unaffected by any changes in any other packets.
 
-## <a name="UID1"></a>User ID
+## <a name="UID1"></a>User ID [↑](#UIDPacket)
 
 The user ID packet defines a name/email address that is associated with the key certificate ([RFC4880-5.11][]). The gpg program will store it in [RFC2822][] format ("David Steele <dsteele@gmail.com\>") based on the name and email you provide it when you generated the key.
 
@@ -252,7 +256,7 @@ The user ID packet defines a name/email address that is associated with the key 
 
 The key certificate can have more than one user id. For instance, if you want to use the key certificate with more than one email account, multiple user ids would be needed.
 
-### <a name="EndorsingSigs"/>Endorsing Signatures
+### <a name="EndorsingSigs"/>Endorsing Signatures  [↑](#EndorsingPackets)
 
 A user id packet is followed by one or more 'signature packets'. 
 
@@ -266,7 +270,7 @@ Signatures are identified by the 'signature type', shown as 'sigclass' in the pa
 
 Key signatures can be created using the 'sign-key' command in the key edit mode. 
 
-### <a name="SelfSig"/>Self Signature
+### <a name="SelfSig"/>Self Signature  [↑](#EndorsingPackets)
 
 The 'self signature' is a key signature generated by the primary key being signed. It serves as verification that the user id is valid for that key. For version 4 packets, it also provides a number of parameters to be associated with the key/user id pair ([RFC4880-5.2][]).
 
@@ -274,7 +278,7 @@ The 'self signature' is a key signature generated by the primary key being signe
 
 Self signatures are generated automatically by gpg, as keys are generated and as parameters are changed.
 
-### <a name="SigClass"/>Signature Class
+### <a name="SigClass"/>Signature Class  [↑](#EndorsingPackets)
 
 Again, the key signature type, or 'sigclass', identifies the signature as a key signature. It also claims to provide a level of assurance of that certification, from "does not make any particular assertion" to "substantial verification of the claim of identity" ([RFC4880-5.2][]).
 
@@ -288,7 +292,7 @@ It appears that the levels are largely ignored for key validation purposes. The 
 
 I have both 0x10 and 0x13 key signatures in my key certificate.
 
-### <a name="DigestAlgo"/>Digest Algorithm
+### <a name="DigestAlgo"/>Digest Algorithm  [↑](#EndorsingPackets)
 
 A signature is actually a cryptographic operation over a hash of the entity being signed. The list of digest
 algorithms ('hash' and 'digest' are interchangeable) are in [RFC4880-9.4][].
@@ -304,14 +308,14 @@ preferences using the [personal-digest-preferences][] and [cert-digest-algo][] p
 [personal-digest-preferences]: https://www.gnupg.org/documentation/manuals/gnupg/OpenPGP-Options.html#index-personal_002ddigest_002dpreferences-280
 [cert-digest-algo]: https://www.gnupg.org/documentation/manuals/gnupg/GPG-Esoteric-Options.html#index-cert_002ddigest_002dalgo-324
 
-### <a name="SigSubpacket"/>"Endorsing Signature" Subpackets
+### <a name="SigSubpacket"/>"Endorsing Signature" Subpackets  [↑](#EndorsingPackets)
 
 Here is where things got interesting for me, and enlightening. The key self signature contains subpackets with additional information about the key and how it is to be used ([RFC4880-5.2][]). That means such information is validated by the primary key, but that the information is unaffected by (and unaffecting of) other externally-generated key signatures. Some of these subpackets are detailed in the following sections, with the gpg mechanisms for manipulation. The full list of subpackets is in [RFC4880-5.2.3.1][]
 
 [RFC4880-5.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2
 [RFC4880-5.2.3.1]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.1
 
-#### <a name="KeyFlags"/>Key Flag Subpacket
+#### <a name="KeyFlags"/>Key Flag Subpacket  [↑](#EndorsingPackets)
 
 I've said a couple of times now that the primary key is used for signing, and there is a separate encryption subkey. Well, it is the 'keyflags' field that defines these roles for the keys ([RFC4880-5.2.3.21][]).
 
@@ -351,7 +355,7 @@ There is not much to work with on this flag, under the normal gpg mode. I don't 
 
 It is possible to set these flags on creation, if you use the gpg "\-\-expert" option along with "\-\-gen-key". Additional key algorithms are shown on the edit "addkey" command which permit toggling some key flags.
 
-#### <a name="PrefSymAlgos"/>Preferred Symmetric Algorithms
+#### <a name="PrefSymAlgos"/>Preferred Symmetric Algorithms  [↑](#EndorsingPackets)
 
 First, be aware that when you use public key algorithms, you are actually managing a symmetric encryption key, which is used to do the actual work of encrypting your message. The why of that is out of scope here.
 
@@ -364,35 +368,35 @@ The defined list of algorithms is at [RFC4880-9.2][]. You will probably not need
 
 [RFC4880-9.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-9.2
 
-#### <a name="PrefHashAlgos"/>Preferred Hash Algorithms
+#### <a name="PrefHashAlgos"/>Preferred Hash Algorithms  [↑](#EndorsingPackets)
 
 The hash algorithms available are defined at [RFC4880-9.4][]. These are used for signatures. MD5 should definitely not be in the list. For compatibility, SHA-1 should be in the list somewhere. Note that this is not current [Debian practice][] (see the section on gpg.conf).
 
 [Debian practice]: http://keyring.debian.org/creating-key.html
 
-#### <a name="Features"/>Key Features
+#### <a name="Features"/>Key Features  [↑](#EndorsingPackets)
 
 "Features" doesn't yet serve much purpose ([RFC4880-5.2.3.24][]).
 
 [RFC4880-5.2.3.24]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.24
 
-#### <a name="KeyServPrefs"/>Key Server Preferences
+#### <a name="KeyServPrefs"/>Key Server Preferences  [↑](#EndorsingPackets)
 
 The key server preferences subpacket is also a bit light ([RFC4880-5.2.3.17][])
 
 [RFC4880-5.2.3.17]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.17
 
-### <a name="ExternalSigs"/>External Key Signatures
+### <a name="ExternalSigs"/>External Key Signatures [↑](#EndorsingPackets)
 
 Following the self signature are the externally generated key signatures. You get these when you import a copy of your key that has been signed remotely and exported by a person who is certifying your key certificate/user id. Note that I show two signatures from the same user/key, ('F7EBEE8EB7982329'), certifying my two user id's independently.
 
-## <a name="EncryptSubkey"/>Encryption Subkey
+## <a name="EncryptSubkey"/>Encryption Subkey [↑](#EncryptionSubkeyPacket)
 
 You can see that this was created at the same time as the primary key. As mentioned previously, this is created automatically with \-\-gen-key.
 
 The parameters have already been discussed.
 
-## <a name="SigningSubkey"/>Signing Subkey
+## <a name="SigningSubkey"/>Signing Subkey [↑](#SigningSubkeyPacket)
 
 
 This signing subkey was created in 2014. It, and the encryption subkey, are only self-signed. That alone allows them to inherit the trust from the top level primary keys defined by the other primary key signatures.
