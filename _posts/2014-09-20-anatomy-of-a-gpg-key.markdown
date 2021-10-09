@@ -53,7 +53,7 @@ This is a pretty standard published key certificate, which is to say that it con
 I've linked aspects of the key dump to explanation paragraphs below.
 
 -----
-
+<a name="PrimaryPacket"/>D
 > \# [Primary key](#PrimaryKey)  
 > :public key [packet](#PacketType):  
 > &nbsp;&nbsp;&nbsp;&nbsp;[version 4](#PacketVer), [algo 1](#KeyAlg), created [1281838967](#DatesExpir), expires 0  
@@ -150,7 +150,7 @@ I've linked aspects of the key dump to explanation paragraphs below.
 -----
 
 
-## <a name="PrimaryKey"></a>Primary Key
+## <a name="PrimaryKey"></a>Primary Key [&#2191;](#PrimaryPacket)
 
 The first packet in a published OpenPGP/gpg key certificate is the primary signing/certification public key. The overall key certificate is referenced by the Key ID of this key.
 
