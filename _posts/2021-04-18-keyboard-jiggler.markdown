@@ -85,6 +85,8 @@ Create the file _/home/pi/tickle.py_, and populate it according to [this
 gist](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-tickle-py).
 This code is Python, so spaces are significant.
 
+    curl https://gist.githubusercontent.com/davesteele/276a17315cff728bb5932c59329da850/raw/f3b4912418679e095be82a81acd05d557448449c/tickle.py > /home/pi/tickle.py
+
 Make the file executable:
 
     chmod 755 /home/pi/tickle.py
