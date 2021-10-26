@@ -21,7 +21,12 @@ Here are some takeaways I wish I had going into this:
 ## Some Terms
 It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
 
-* Primary key vs. subkey - A PGP key certificate may contain other information in addition to the key itself. A subkey is a key that is stored as a sub-component of another key. The primary key is the top level key. It is often referred to elsewhere as the master key.
+* Primary key vs. subkey - A PGP key certificate may contain other information
+in addition to the key itself. A subkey is a key that is stored as a
+sub-component of another key. The primary key is the top level key. It is often
+referred to elsewhere as the master key. The certificate is identified by the
+Key ID of the primary key. The additional keys are "subkeys" in that they
+achieve their web-of-trust validity by way of the primary key.
 * Public key - This post is working with the published version of the key certificate. Therefore, only public keys are described (the ones that encrypt and verify signatures). Your local version of your key also includes the associated private keys (for decryption and signature creation), to define the key pair.
 * Key certificate - Part of the challenge of understanding gpg key management documentation is the flexibility in the definition of the word 'key'. It can refer to a specific private or public key, or to a particular key pair, or to the OpenPGP 'certificate' that defines a suite of information associated with a key or set of keys. I will use the term "key/public key" and "key certificate" to distinguish between the possible interpretations. Key pairs and private keys will not come up here. We will be focusing on the key certificate.
 * Key ID - A hexadecimal string that identifies a key (usually the primary key).
