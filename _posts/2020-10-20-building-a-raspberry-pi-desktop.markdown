@@ -32,7 +32,7 @@ We are asking a lot of the Pi in this project - why not splurge a bit and get th
 
 #### Argon ONE Pi 4 Case - $25
 
-I highly recommend the [Argon ONE](https://www.argon40.com/argon-one-raspberry-pi-4-case.html) ([updated link](https://www.argon40.com/argon-one-v-2-case-for-raspberry-pi-5.html))Pi 4 case. It includes thermal and power management (including a power button!) inside a sleek box that makes the system more reliable and very quiet.
+I highly recommend the [Argon ONE](https://www.argon40.com/argon-one-raspberry-pi-4-case.html) ([updated link](https://www.argon40.com/argon-one-v-2-case-for-raspberry-pi-5.html)) Pi 4 case. It includes thermal and power management (including a power button!) inside a sleek box that makes the system more reliable and very quiet.
 
 Since I built this system, Argon Forty has released the [Argon ONE M.2 Case](https://www.argon40.com/argon-one-m-2-case-for-raspberry-pi-4.html), which includes provisions for including an M.2 SATA SSD in the case. This is worth investigating - my solution has the SSD awkwardly sitting outside the case.
 
