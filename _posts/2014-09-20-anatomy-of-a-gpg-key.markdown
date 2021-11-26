@@ -34,7 +34,7 @@ achieve their web-of-trust validity by way of the primary key.
 * Certification vs. signing - 'Signing' is an action against arbitrary data. 'Certification' is the signing of another key. Ironically, the act of certifying a key is universally called "key signing". Just embrace the contradiction.
 * Key packet - 'Packet' is the term used by RFC4880 to identify a component of the message/certificate format. Messages and keys certificates are made up of packets and subpackets of various types.
 * Trust, Validity, and the Web of Trust - gpg uses a model of 'trust' of users (defined locally-only using the 'trust' edit command) and reported 'validity'
-of keys (defined by key signatures/certificates). The combination creates a "Web of Trust", starting with locally-defined trust statements about users, and passing through multiple levels of key-signature-defined validity links to other keys. Gpg uses the web of trust to determine if a key is acceptable for use without warning the user. There is a writeup in the [GNU Privacy Handbook][] that covers the concepts well enough if you have the terms straight. Documentation often uses the word 'trust' for both 'trust' and 'validity'. I mention all of this only to note that this document is concerned with 'validity'.
+of keys (defined by key signatures/certificates). The combination creates a "Web of Trust", starting with locally-defined trust statements about users, and passing through multiple levels of key-signature-defined validity links to other keys. Gpg uses the web of trust to determine if a key is acceptable for use without warning the user. There is a writeup in the [GNU Privacy Handbook][] that covers the concepts well enough if you have the terms straight. Documentation often uses the word 'trust' for both 'trust' and 'validity'. I mention all of this only to note that this document is only concerned with 'validity'.
 
 [GNU Privacy Handbook]: https://www.gnupg.org/gph/en/manual/x334.html#AEN384
 
@@ -44,7 +44,7 @@ Following is an annotated and edited dump of my key certificate, originally gene
 
     gpg -a --export "David Steele" | gpg --list-packets --verbose
 
-where "David Steele" matches a UID for my key. Substitute your name or primary key id to see your key certificate. Add the '\-\-debug 0x02' option to the second gpg invocation to see the entire contents, including the binary key data (thanks [superuser.com][]).
+where "David Steele" matches a UID for my key. Substitute your name, email, or primary key id to see your key certificate. Add the '\-\-debug 0x02' option to the second gpg invocation to see the entire contents, including the binary key data (thanks [superuser.com][]).
 
 [superuser.com]: http://superuser.com/questions/696941/human-readable-dump-of-gpg-public-key
 
