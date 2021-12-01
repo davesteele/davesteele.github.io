@@ -429,3 +429,4 @@ The pgpdump program provides more information in the dump, and also has a [web i
 
 Should you have made it this far, I hope you have found this useful. Please let me know if you find any issues with the explanations.
 
+Check out [Intermediate GPG](https://davesteele.github.io/gpg/2015/08/01/intermediate-gpg/) for more information.
