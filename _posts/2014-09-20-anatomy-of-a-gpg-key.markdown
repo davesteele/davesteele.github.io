@@ -245,6 +245,8 @@ Going one step further down the rabbit hole, in some contexts this value needs t
 
 The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and many consider this a [terrible idea][].
 
+Fingerprints and Key IDs are deterministic - they are calculated from the contents of the key.
+
 [terrible idea]: https://lwn.net/Articles/689792/
 
 The Key ID of the Primary public key ('366150CE' in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.
