@@ -15,11 +15,11 @@ Here are some takeaways I wish I had going into this:
 
 * Most key parameters are stored in the self signature. That means they can be changed at will by the key owner without affecting the status of external key signatures.
 * Subkeys need only be self-signed (which is automatic). Trust from external signatures is provided transitively.
-* (Edit - 19 Apr 2015) gpg [automatically uses the newest subkey](http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM) to sign/encrypt.
+* (Edit - 19 Apr 2015) gpg [automatically uses the newest valid subkey](http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM) to sign/encrypt.
 
 
 ## Some Terms
-It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on a couple of terms:
+It's best that you have an understanding of data encryption and data signing using public key cryptography before you read this. You should also know about key signing and the the reason for it. Oh, and also binary-to-hexadecimal conversion for one (small) part. Having said that, let's be clear on some terms:
 
 * Primary key vs. subkey - A PGP key certificate may contain other information
 in addition to the key itself. A subkey is a key that is stored as a
@@ -235,23 +235,23 @@ The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed 
     sub   4096R/0D929394 2010-08-15
     sub   4096R/0A817A82 2014-08-15 [expires: 2019-08-14]
 
-The key certificate dump is expressing this fingerprint as a 'key id' (or 'long key id'), taking the last 16 characters of that fingerprint (again, [rfc4880-12.2][]).
+The key certificate dump is expressing this fingerprint as a 'key id' (or 'long key id'), taking the last 16 characters of that fingerprint ("8A3171EF366150CE") (again, [rfc4880-12.2][]).
 
-The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id ('short key id'), shown on the 'pub' line for the fingerprint call above. It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
+The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id ('short key id'), shown on the 'pub' line for the fingerprint call above ("366150CE"). It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
 
 [RFC4880-3.3]: https://datatracker.ietf.org/doc/html/rfc4880#section-3.3
 
 Going one step further down the rabbit hole, in some contexts this value needs to have "0x" prepended ('0x366150CE'). I've run across this in a key server search function.
 
-The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and many consider this a [terrible idea][].
+The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and is a [terrible idea][].
 
 Fingerprints and Key IDs are deterministic - they are calculated from the contents of the key.
 
 [terrible idea]: https://lwn.net/Articles/689792/
 
-The Key ID of the Primary public key ('366150CE' in this case) is used to refer to some of its own subkeys, such as the associated private signing key, as well as the encryption subkey.
+The Key ID of the Primary public key ("366150CE" in this case) is used to refer to the overall key certificate, and is normally the handle used to automatically select the appropriate subkey.
 
-The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is changed, but is unaffected by any changes in any other packets.
+The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is modified, but is unaffected by any changes in any other packets.
 
 ## <a name="UID1"></a>User ID [↑](#UIDPacket)
 
