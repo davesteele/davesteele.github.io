@@ -30,6 +30,11 @@ $ wget -q -O - https://openpgpkey.debian.org/.well-known/openpgpkey/debian.org/h
 $ wget -q -O - https://davesteele.github.io/key-366150CE.pub.txt | sudo apt-key add -
 
 
+# The key is on the Debian keyring - verify on Debian/Raspberry OS with:
+
+gpg --keyring /usr/share/keyrings/debian-keyring.gpg --no-default-keyring --list-key "David Steele"
+
+
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBExnT3cBEACjM5fQ6hQUW6Rp7ddUzEhW3VKZ6cub3kdXMINk0Zrbyw9+J4T9
