@@ -26,24 +26,25 @@ storing the tar locally.
 
 [tags]: https://github.com/davesteele/comitup/tags
 
-This is actually not good enough, as it stands, to work in a git-buildpackage
-environment. The final glob should be more specific, to match only against the
-branch holding the 'upstream' (that is, the non-debian) code branch.
+This is actually not good enough, as it stands, to work in an environment where
+tags exist for multiple branches (if, for instance, the repository also has a
+"debian" branch). The final glob should be more specific, to match only against
+the branch holding the 'upstream' (that is, the non-debian) code branch.
 
-[Typical guidance][] for specifying the signature url, using the pgpsigurlmangle
+Meanwhile, [typical guidance][] for specifying the signature url, using the pgpsigurlmangle
 option, tells how to point to the file when it is stored in the same directory
 as the tar, with an appended ".asc":
 
-[Typical guidance]: https://wiki.debian.org/debian/watch#Cryptographic_signature_verification
+[typical guidance]: https://wiki.debian.org/debian/watch#Cryptographic_signature_verification
 
     opts=pgpsigurlmangle=s/$/.asc/ ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-(.+)\.tar\.gz
 
-Unfortunately, it is not practical to store the signature on the GitHub tags/release
-pages.
+Unfortunately, it is not practical to store the signature on the GitHub tags
+page.
 
 I stored the signatures in a dedicated [signatures][] branch, and used a
 [custom][] 'pgpsigurlmangle' definition to point to a raw version of the
-[appropriate signature][]:
+[appropriate signature][]. The final result:
 
 [signatures]: https://github.com/davesteele/comitup/tree/signatures
 [custom]: https://raw.githubusercontent.com/davesteele/comitup/debian/debian/watch
