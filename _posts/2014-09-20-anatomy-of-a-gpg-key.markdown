@@ -413,7 +413,7 @@ The new wrinkle in this key is an expiration subpacket on the self signature, wh
 [RFC4880-5.2.3.6]: https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.6
 
 (Added - 19 Apr 2015) Note that gpg will automatically use the [most recent signing/encryption subkey](http://support.gpgtools.org/discussions/problems/8919-force-subkey-for-signing#19 Jun,%202013%2012:15%20PM) when the master is referenced. To force a specific key/subkey, add an
-[exclamation mark](http://www.enricozini.org/2006/tips/gpg-select-subkey/) after the Key ID.
+[exclamation mark](http://enricozini.org/2006/tips/gpg-select-subkey/) after the Key ID.
 
 ## <a name="OtherTools"/>Other Tools
 
