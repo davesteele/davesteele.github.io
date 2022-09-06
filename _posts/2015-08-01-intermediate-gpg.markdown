@@ -82,7 +82,7 @@ If I wish to encrypt data using my encryption key, I can actually use any one of
     $ gpg --encrypt --recipient dsteele@gmail.com foo
 
 
-Note that I am using short ids to reference keys to be used for encryption - in practice that is considered a [bad idea](https://www.debian-administration.org/users/dkg/weblog/105). Fingerprints should be used instead ('gpg --list-keys --fingerprints &lt;key reference&gt;').
+Note that I am using short ids to reference keys to be used for encryption - in practice that is considered a [bad idea](https://lwn.net/Articles/689792/). Fingerprints should be used instead ('gpg --list-keys --fingerprints &lt;key reference&gt;').
 
 ### But, gpg will select the key to use automatically, regardless of the identifying key id
 
