@@ -5,6 +5,11 @@ date:   2015-05-02 21:44:00
 categories: development
 ---
 
+Edit 2022-10-08 - GitHub has just made a change that makes it harder to work
+wite source files on the *Releases* page. See an
+[update](https://davesteele.github.io/development/2022/10/05/debian-watch-file-for-github-redux/)
+covering a workaround
+
 I just added uscan source tar signature validation to a project stored on
 GitHub. A cookbook approach may be helpful to others.
 
@@ -60,7 +65,7 @@ I stored the signatures in a dedicated [signatures][] branch, and used a
 A couple things to note here:
 
 * That is a single, continued line.
-* There are two white space occurances in that line, separating the defninition
+* There are two white space occurances in that line, separating the definition
 into an option specification, a tar listing page url, and tar search glob.
 * The two options defined in the 'opts' spec are separated by a comma.
 * _uscan_ replaces _@PACKAGE@_ with the package name from the most current
