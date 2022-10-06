@@ -44,7 +44,7 @@ to that:
     format=4
     
     opts=downloadurlmangle=s/archive\/refs\/tags\/(.*)\.tar\.gz/releases\/download\/$1\/@PACKAGE@-$1\.tar\.xz/,\
-    pgpsigurlmangle=s/$/.asc/,
+    pgpsigurlmangle=s/$/.asc/ \
     https://github.com/mhogomchungu/@PACKAGE@/tags \
     /mhogomchungu/@PACKAGE@/archive/refs/tags/(.*)\.tar\.gz
 
