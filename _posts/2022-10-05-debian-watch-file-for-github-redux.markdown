@@ -30,7 +30,7 @@ First, edit the *watch* file to point to the *Tags* page, looking for *.tar.gz* 
     /mhogomchungu/@PACKAGE@/archive/refs/tags/(.*)\.tar\.gz
 
 If you are looking for a *tar.gz*, you may be done at this point. I am after a
-signed *tar.xz* file on the *Releases*, so lets remap the download url to point
+signed *tar.xz* file on the *Releases* page, so lets remap the download url to point
 to that:
 
     format=4
