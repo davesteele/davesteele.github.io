@@ -32,7 +32,7 @@ call can operate in both a blocking and a
 mode. Either will work in asyncio, with at least one caveat - if the blocking
 getch() is called in a separate thread via an asyncio executor, it will not
 return some events, notably KEY\_RESIZE. A polling mechanism is therefore
-recommented, e.g.:
+recommended, e.g.:
 
 
 ```
