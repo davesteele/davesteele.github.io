@@ -423,7 +423,7 @@ The [hokey][] utility, from the hopenpgp-tools package, can perform a 'lint' ope
 
     $ gpg  --export "David Steele" | hokey lint
 
-The pgpdump program provides more information in the dump, and also has a [web interface][].
+The pgpdump program provides more information in the dump.
 
 [web interface]: http://www.pgpdump.net/
 
