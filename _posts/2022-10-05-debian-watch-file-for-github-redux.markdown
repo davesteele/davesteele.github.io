@@ -9,11 +9,11 @@ Seven years ago I wrote down how to [format Debian uscan watch files for
 GitHub](https://davesteele.github.io/development/2015/05/02/debian-watch-file-format-for-signed-github-source-tars/)
 sources, so I would be able to find it later. Last month, it got
 [harder](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1019696) to use this
-type of strategy, files using this strategy because GitHub no longer will let
+type of strategy to track some files, because GitHub no longer will let
 you scrape the *Releases* page for source tarballs.  That bug report
 [suggested](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1019696#20) a
 workaround strategy - enumerate the possibilities on the *Tags* page, and morph
-the results to the *Releasees* page
+the results to the *Releases* page
 
 Here's how to do that. I'm going to use the
 [_sirikali_](https://github.com/davesteele/sirikali) package as an example.
