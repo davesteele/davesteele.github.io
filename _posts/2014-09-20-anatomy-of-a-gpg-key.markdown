@@ -223,7 +223,9 @@ There has been a fair amount of mulling about the right strategy for key expirat
 
 ### <a name="KeyId"></a>Key ID [↑](#PrimaryPacket)
 
-The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed as a hexadecimal string, divided into 10 4-character groups ([rfc4880-12.2][]). When validating keys for key signing, the fingerprint is used.
+The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed
+as a hexadecimal string, divided into 10 4-character groups ([rfc4880-12.2][]).
+When validating keys for key signing, the fingerprint is used.
 
 [RFC4880-12.2]: https://datatracker.ietf.org/doc/html/rfc4880#section-12.2
 
@@ -235,23 +237,37 @@ The RFC defines a 160-bit 'fingerprint' for a key, which is typically expressed 
     sub   4096R/0D929394 2010-08-15
     sub   4096R/0A817A82 2014-08-15 [expires: 2019-08-14]
 
-The key certificate dump is expressing this fingerprint as a 'key id' (or 'long key id'), taking the last 16 characters of that fingerprint ("8A3171EF366150CE") (again, [rfc4880-12.2][]).
-
-The gpg program muddies the waters a bit by using the last 8 characters of the fingerprint as its definition of the key id ('short key id'), shown on the 'pub' line for the fingerprint call above ("366150CE"). It is using the definition of key id from section 3.3 ([rfc4880-3.3][]).
+The key certificate dump is expressing this fingerprint as a 'key id' (or 'long
+key id'), taking the last 16 characters of that fingerprint
+("8A3171EF366150CE") (again, [rfc4880-12.2][]). It is using the definition of
+key id from section 3.3 ([rfc4880-3.3][]).
 
 [RFC4880-3.3]: https://datatracker.ietf.org/doc/html/rfc4880#section-3.3
 
-Going one step further down the rabbit hole, in some contexts this value needs to have "0x" prepended ('0x366150CE'). I've run across this in a key server search function.
+The gpg program muddies the waters a bit by using the last 8 characters of the
+fingerprint as its definition of the key id ('short key id'), shown on the
+'pub' line for the fingerprint call above ("366150CE").
 
-The key id is a shorthand method for referring to a particular key or key certificate. The 8-character version is the primary mechanism for referring to a particular key, even though it is spoof-able, and is a [terrible idea][].
+Going one step further down the rabbit hole, in some contexts this value needs
+to have "0x" prepended ('0x366150CE'). I've run across this in a key server
+search function.
 
-Fingerprints and Key IDs are deterministic - they are calculated from the contents of the key.
+The key id is a shorthand method for referring to a particular key or key
+certificate. The 8-character version is the primary mechanism for referring to
+a particular key, even though it is spoof-able, and is a [terrible idea][].
 
 [terrible idea]: https://lwn.net/Articles/689792/
 
-The Key ID of the Primary public key ("366150CE" in this case) is used to refer to the overall key certificate, and is normally the handle used to automatically select the appropriate subkey.
+Fingerprints and Key IDs are deterministic - they are calculated from the
+contents of the key.
 
-The fingerprint/key id is a hash of the entire key packet, and only the key packet. It is invalidated (changed) if any information in the key packet is modified, but is unaffected by any changes in any other packets.
+The Key ID of the Primary public key ("366150CE" in this case) is used to refer
+to the overall key certificate, and is normally the handle used to
+automatically select the appropriate subkey.
+
+The fingerprint/key id is a hash of the entire key packet, and only the key
+packet. It is invalidated (changed) if any information in the key packet is
+modified, but is unaffected by any changes in any other packets.
 
 ## <a name="UID1"></a>User ID [↑](#UIDPacket)
 
