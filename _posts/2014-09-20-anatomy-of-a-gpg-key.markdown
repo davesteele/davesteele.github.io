@@ -5,7 +5,7 @@ date:   2014-09-20 21:29:00
 categories: gpg
 ---
 
-I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool 'gpg'. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were tangential to the particular procedure, and therefore not covered where I needed it to be.
+I have a confession to make. I had a fairly hard time understanding all of the ins and outs of managing keys using the gnupg tool 'gpg'. Pretty much all of the documentation is procedural - how to use the tool to accomplish some specific tasks. Many questions that I had were perpendicular to the particular procedure, and therefore not covered where I needed it to be.
 
 For me, the key to understanding how to work with gpg was to understand the packet structure of the underlying OpenPGP Message Format ([RFC4880](https://datatracker.ietf.org/doc/html/rfc4880)), which defines how gpg messages, signatures, and key material are stored. The goal of this post is to grease the skids for the next guy, by tying the key storage format to the RFC definition, and to the associated gpg commands and parameters.
 
