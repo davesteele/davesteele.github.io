@@ -5,7 +5,6 @@ description: "Linux Musings. Things to remember/rant about."
 baseurl: ""
 url: "https://davesteele.github.io"
 comments: true
-twitter_username: dsteele
 github_username:  davesteele
 
 # category feed settings
