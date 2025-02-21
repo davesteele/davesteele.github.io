@@ -10,6 +10,8 @@ excerpt_separator: <!--more-->
 
 ![Pi Keyboard Jiggler](/images/2021-04-18-keyboard-jiggler/keyboard-jiggler-jiggler.jpg)
 
+NOTE: This doesn't currently work.
+
 The problem - your computer automatically sleeps or locks up when unused, there are times you don't want it to do that, and it is either inconvenient or impossible to disable.
 
 There is a generally-available solution for this - the [Mouse Jiggler](https://en.wikipedia.org/wiki/Mouse_Jiggler). This USB device emulates a  mouse, and strives to generates just enough simulated mouse movement to convince your computer that there is an active human present.
@@ -56,16 +58,18 @@ On the Pi, install git:
 
 Clone the
 [piezero-usb-hid-keyboard](https://github.com/raspberrypisig/pizero-usb-hid-keyboard)
-repository to the Pi user home directory:
+repository to your user home directory:
 
     cd ~
     git clone https://github.com/raspberrypisig/pizero-usb-hid-keyboard.git
 
 Install the repository software to the Pi:
 
-    cd pizero-usb-hid-keyboard
+    cd ~/pizero-usb-hid-keyboard
     sudo ./setup-hid-modules.sh
     sudo ./enableHIDRCLocal.sh
+
+Open /etc/rc.local as root, and adjust the path for the xxx call, if necessary, to point to the instance you have installed (i.e. replace _pi_ with your user name).
 
 Reboot the Pi.
 
@@ -85,15 +89,15 @@ Create the file _/home/pi/tickle.py_, and populate it according to [this
 gist](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-tickle-py).
 This code is Python, so spaces are significant.
 
-    curl https://gist.githubusercontent.com/davesteele/276a17315cff728bb5932c59329da850/raw/f3b4912418679e095be82a81acd05d557448449c/tickle.py > /home/pi/tickle.py
+    curl https://gist.githubusercontent.com/davesteele/276a17315cff728bb5932c59329da850/raw/f3b4912418679e095be82a81acd05d557448449c/tickle.py > ~/tickle.py
 
 Make the file executable:
 
-    chmod 755 /home/pi/tickle.py
+    chmod 755 ~/tickle.py
 
-Edit the file [_/etc/rc.local_](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-rc-local), and add a call to run _tickle.py_ in the background before the exit call:
+Edit the file [_/etc/rc.local_](https://gist.github.com/davesteele/276a17315cff728bb5932c59329da850#file-rc-local), and add a call to run _tickle.py_ in the background before the exit call (replace _&lt;user&gt;_ with the user account you used in the previous steps):
 
-    /home/pi/tickle.py &
+    /home/&lt;user&gt;/tickle.py &
 
 Cycle power on the Pi, and you should see the Caps Lock light on your keyboard flash about once a minute.
 
