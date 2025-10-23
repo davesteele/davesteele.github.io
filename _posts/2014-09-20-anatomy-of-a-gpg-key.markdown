@@ -23,7 +23,7 @@ It's best that you have an understanding of data encryption and data signing usi
 
 * Primary key vs. subkey - A PGP key certificate may contain other information
 in addition to the key itself. A subkey is a key that is stored as a
-sub-component of another key. The primary key is the top level key. It is often
+subordinate of another key. The primary key is the top level key. It is often
 referred to elsewhere as the master key. The certificate is identified by the
 Key ID of the primary key. The additional keys are "subkeys" in that they
 achieve their web-of-trust validity by way of the primary key.
