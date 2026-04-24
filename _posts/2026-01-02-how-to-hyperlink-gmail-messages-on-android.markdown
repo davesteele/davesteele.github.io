@@ -31,7 +31,7 @@ The corrected URLs will be able to access the messages, even if they change stat
 
 If you try one of these desktop links on Android, it probably will not work. Chrome will forward the link to the Gmail app, and the app won't understand it, and instead open the Inbox.
 
-To keep Gmail handling within Chrome, turn off automatic forwarding to the Gmail app. On your phone, go to "Settings -> Apps -> Gmail -> Open by default", and sekect "In your browser".
+To keep Gmail handling within Chrome, turn off automatic forwarding to the Gmail app. On your phone, go to "Settings -> Apps -> Gmail -> Open by default", and select "In your browser".
 
 Alternatively, use a different browser as your default. Netscape opens Gmail links in the browser by default.
 
